@@ -39,7 +39,7 @@ import {
   metrics,
 } from "./domain";
 import { loadRecords, saveRecords, KEY } from "./store";
-import { nexoTrainedDates } from "./nexo";
+import { nexoStatus } from "./nexo";
 import "./styles.css";
 const iconProps = { size: 20, strokeWidth: 1.65 };
 const fmt = (d, options) => parseDate(d).toLocaleDateString("pt-BR", options);
@@ -84,24 +84,36 @@ function App() {
   async function syncNexo(p) {
     setNexo((s) => ({ ...s, [p]: { ...s[p], syncing: true, error: "" } }));
     try {
-      const rows = await nexoTrainedDates(p);
-      if (rows === null) {
+      const result = await nexoStatus(p);
+      if (result === null) {
         setNexo((s) => ({ ...s, [p]: { syncing: false, error: "", configured: false } }));
         return;
       }
+      const { trainedDates = [], water = [] } = result;
       const until = dateKey();
-      const trainedKeys = new Set(rows.map((iso) => dateKey(new Date(iso))));
+      const trainedKeys = new Set(trainedDates.map((iso) => dateKey(new Date(iso))));
+      const waterByDate = new Map(water.map((w) => [w.date, w.amountMl]));
+      const dates = new Set([...trainedKeys, ...waterByDate.keys()]);
       const fresh = loadRecords();
       let changed = false;
-      for (const key of trainedKeys) {
+      for (const key of dates) {
         if (key > until) continue;
         const existing = fresh[`${p}:${key}`];
         const day = existing ? structuredClone(existing) : createDay(p, key);
-        if (day.workouts.length && day.workouts.some((w) => !w.done)) {
+        let dayChanged = false;
+        if (trainedKeys.has(key) && day.workouts.length && day.workouts.some((w) => !w.done)) {
           day.workouts.forEach((w) => {
             w.done = true;
             w.nexo = true;
           });
+          dayChanged = true;
+        }
+        if (waterByDate.has(key) && day.water !== waterByDate.get(key)) {
+          day.water = waterByDate.get(key);
+          day.waterNexo = true;
+          dayChanged = true;
+        }
+        if (dayChanged) {
           day.person = p;
           fresh[`${p}:${key}`] = day;
           changed = true;
@@ -290,6 +302,25 @@ function App() {
       </section>
     );
   }
+  function NexoStatus({ p }) {
+    return (
+      <div className="integration-note">
+        <Link2 size={14} />
+        <span>
+          NEXO Fit{" "}
+          <span>
+            {nexo[p]?.error
+              ? "· erro ao sincronizar"
+              : nexo[p]?.syncing
+                ? "· sincronizando…"
+                : nexo[p]?.configured
+                  ? "· sincronizado"
+                  : "· não configurado"}
+          </span>
+        </span>
+      </div>
+    );
+  }
   function Water({ p, d }) {
     return (
       <section className="panel water-panel">
@@ -347,10 +378,13 @@ function App() {
         <p className="tiny">
           {d.example
             ? "Meta ilustrativa. Ajuste ao definir seu plano."
-            : d.water >= d.waterGoal
-              ? "Meta de água alcançada. Muito bem!"
-              : "Informe o total do dia. Você pode corrigir depois."}
+            : d.waterNexo
+              ? "Água sincronizada automaticamente do NEXO Fit."
+              : d.water >= d.waterGoal
+                ? "Meta de água alcançada. Muito bem!"
+                : "Informe o total do dia. Você pode corrigir depois."}
         </p>
+        <NexoStatus p={p} />
       </section>
     );
   }
@@ -405,21 +439,7 @@ function App() {
             <span>Sem treino obrigatório neste dia.</span>
           </p>
         )}
-        <div className="integration-note">
-          <Link2 size={14} />
-          <span>
-            NEXO Fit{" "}
-            <span>
-              {nexo[p]?.error
-                ? "· erro ao sincronizar"
-                : nexo[p]?.syncing
-                  ? "· sincronizando…"
-                  : nexo[p]?.configured
-                    ? "· sincronizado"
-                    : "· não configurado"}
-            </span>
-          </span>
-        </div>
+        <NexoStatus p={p} />
       </section>
     );
   }
