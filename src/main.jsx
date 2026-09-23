@@ -834,9 +834,6 @@ function App() {
             Feito para a vida real. Um dia de cada vez.
           </div>
         </main>
-        <footer className="local-notice">
-          Prévia interativa · registros salvos apenas neste navegador
-        </footer>
       </div>
     );
   return (
@@ -907,10 +904,6 @@ function App() {
             <Brand compact />
           </button>
           <div className="topbar-right">
-            <span className="local-tag">
-              <span />
-              Prévia local
-            </span>
             <button
               className="avatar small"
               aria-label="Trocar perfil"

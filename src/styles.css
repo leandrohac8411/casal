@@ -322,12 +322,6 @@ h3 {
   justify-content: center;
   gap: 8px;
 }
-.local-notice {
-  color: #8e8996;
-  font-size: 11px;
-  text-align: center;
-  padding: 15px 20px 25px;
-}
 .app {
   min-height: 100dvh;
 }
@@ -439,19 +433,6 @@ h3 {
   display: flex;
   align-items: center;
   gap: 20px;
-}
-.local-tag {
-  font-size: 11px;
-  color: var(--muted);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.local-tag > span {
-  height: 5px;
-  width: 5px;
-  background: #b8cdb6;
-  border-radius: 50%;
 }
 .mobile-brand {
   display: none;
@@ -1557,9 +1538,6 @@ h3 {
   .breadcrumb {
     display: none;
   }
-  .local-tag {
-    font-size: 10px;
-  }
   .topbar-right {
     gap: 12px;
   }
@@ -1954,9 +1932,6 @@ h3 {
     font-size: 10px;
     margin-top: 25px;
   }
-  .local-notice {
-    font-size: 9px;
-  }
   .modal {
     max-height: 90dvh;
     border-radius: 19px;
@@ -2067,9 +2042,6 @@ h3 {
   }
   .date-label {
     font-size: 12px;
-  }
-  .local-tag {
-    font-size: 11px;
   }
   .calendar-explainer {
     font-size: 12px;
