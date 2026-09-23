@@ -376,30 +376,12 @@ function App() {
             }}
           />
         </div>
-        <form className="water-total-form" onSubmit={(event) => {
-          event.preventDefault();
-          const input = event.currentTarget.elements.total;
-          const raw = input.value.trim().replace(',', '.');
-          const liters = Number(raw);
-          if (!/^\d+(\.\d{1,3})?$/.test(raw) || !Number.isFinite(liters) || liters < 0) {
-            input.setCustomValidity('Informe o total em litros, por exemplo: 2,1.');
-            input.reportValidity();
-            return;
-          }
-          update(p, d.date, value => { value.water = Math.round(liters * 1000); });
-        }}>
-          <label htmlFor={`water-total-${p}-${d.date}`}>Quanto você bebeu neste dia?</label>
-          <div className="water-total-controls">
-            <div className="water-total-input"><input id={`water-total-${p}-${d.date}`} name="total" type="text" inputMode="decimal" required autoComplete="off" defaultValue={(d.water / 1000).toLocaleString('pt-BR', {maximumFractionDigits: 3})} placeholder="Ex.: 2,1" disabled={d.date !== today} onInput={event => event.currentTarget.setCustomValidity('')} /><span>litros</span></div>
-            <button type="submit" disabled={d.date !== today}>Salvar total</button>
-          </div>
-        </form>
         <p className="tiny">
           {d.waterNexo
             ? "Água sincronizada automaticamente do NEXO Fit."
             : d.water >= d.waterGoal
               ? "Meta de água alcançada. Muito bem!"
-              : "Informe o total do dia. Você pode corrigir depois."}
+              : "Sincroniza automaticamente com o NEXO Fit."}
         </p>
         <NexoStatus p={p} />
       </section>
