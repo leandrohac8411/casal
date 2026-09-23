@@ -229,7 +229,6 @@ export function createDay(person, key) {
                 ]
               : []),
           ],
-    example: person === "leandro",
   };
 }
 export function status(day) {

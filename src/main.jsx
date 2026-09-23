@@ -27,6 +27,10 @@ import {
   Leaf,
   Coffee,
   Flame,
+  Clock,
+  ListChecks,
+  Repeat,
+  TrendingUp,
 } from "lucide-react";
 import {
   profiles,
@@ -90,11 +94,17 @@ function App() {
         setNexo((s) => ({ ...s, [p]: { syncing: false, error: "", configured: false } }));
         return;
       }
-      const { trainedDates = [], water = [] } = result;
+      const { trainedDates = [], water = [], waterGoalMl, sessions = [] } = result;
       const until = dateKey();
       const trainedKeys = new Set(trainedDates.map((iso) => dateKey(new Date(iso))));
       const waterByDate = new Map(water.map((w) => [w.date, w.amountMl]));
-      const dates = new Set([...trainedKeys, ...waterByDate.keys()]);
+      const sessionsByDate = new Map();
+      for (const s of sessions) {
+        if (!sessionsByDate.has(s.date)) sessionsByDate.set(s.date, []);
+        sessionsByDate.get(s.date).push(s);
+      }
+      const dates = new Set([...trainedKeys, ...waterByDate.keys(), ...sessionsByDate.keys()]);
+      if (waterGoalMl) dates.add(until);
       const fresh = loadRecords();
       let changed = false;
       for (const key of dates) {
@@ -109,9 +119,20 @@ function App() {
           });
           dayChanged = true;
         }
+        if (
+          sessionsByDate.has(key) &&
+          JSON.stringify(day.nexoSessions) !== JSON.stringify(sessionsByDate.get(key))
+        ) {
+          day.nexoSessions = sessionsByDate.get(key);
+          dayChanged = true;
+        }
         if (waterByDate.has(key) && day.water !== waterByDate.get(key)) {
           day.water = waterByDate.get(key);
           day.waterNexo = true;
+          dayChanged = true;
+        }
+        if (waterGoalMl && day.waterGoal !== waterGoalMl) {
+          day.waterGoal = waterGoalMl;
           dayChanged = true;
         }
         if (dayChanged) {
@@ -295,10 +316,7 @@ function App() {
         </div>
         <div className="panel-foot">
           <Leaf size={15} />
-          <span>
-            {plans.find((x) => x.id === d.planId)?.name}{" "}
-            {d.example ? "· exemplo para explorar" : ""}
-          </span>
+          <span>{plans.find((x) => x.id === d.planId)?.name}</span>
         </div>
       </section>
     );
@@ -377,13 +395,11 @@ function App() {
           </div>
         </form>
         <p className="tiny">
-          {d.example
-            ? "Meta ilustrativa. Ajuste ao definir seu plano."
-            : d.waterNexo
-              ? "Água sincronizada automaticamente do NEXO Fit."
-              : d.water >= d.waterGoal
-                ? "Meta de água alcançada. Muito bem!"
-                : "Informe o total do dia. Você pode corrigir depois."}
+          {d.waterNexo
+            ? "Água sincronizada automaticamente do NEXO Fit."
+            : d.water >= d.waterGoal
+              ? "Meta de água alcançada. Muito bem!"
+              : "Informe o total do dia. Você pode corrigir depois."}
         </p>
         <NexoStatus p={p} />
       </section>
@@ -398,7 +414,43 @@ function App() {
             <h2>Corpo em movimento</h2>
           </div>
         </div>
-        {d.workouts.length ? (
+        {d.nexoSessions?.length ? (
+          d.nexoSessions.map((s, i) => (
+            <div key={i} className="nexo-session-card">
+              <div className="nexo-session-head">
+                <CheckCheck size={15} />
+                <span>Treino concluído</span>
+              </div>
+              <strong>{s.workoutName || "Treino"}</strong>
+              <div className="nexo-session-stats">
+                {Number.isFinite(s.durationMin) && (
+                  <span>
+                    <Clock size={14} />
+                    {s.durationMin} min
+                  </span>
+                )}
+                {Number.isFinite(s.exerciseCount) && (
+                  <span>
+                    <ListChecks size={14} />
+                    {s.exerciseCount} exercícios
+                  </span>
+                )}
+                {Number.isFinite(s.setCount) && (
+                  <span>
+                    <Repeat size={14} />
+                    {s.setCount} séries
+                  </span>
+                )}
+                {Number.isFinite(s.totalVolume) && (
+                  <span>
+                    <TrendingUp size={14} />
+                    {Math.round(s.totalVolume).toLocaleString("pt-BR")} kg de volume
+                  </span>
+                )}
+              </div>
+            </div>
+          ))
+        ) : d.workouts.length ? (
           d.workouts.map((w) => (
             <div key={w.id} className="workout-row">
               <span className="workout-glyph">
@@ -481,12 +533,6 @@ function App() {
         </div>
         {week(p)}
         {selected !== today && <div className="readonly-day"><CalendarDays size={17}/><span>{selected < today ? "Este dia já passou. O histórico está disponível apenas para consulta." : "Dia planejado. As marcações serão liberadas nesta data."}</span></div>}
-        {d.example && (
-          <div className="demo-note">
-            O plano de Leandro é ilustrativo. Vamos personalizar suas refeições
-            e metas na próxima etapa.
-          </div>
-        )}
         <div className="daily-grid">
           <div className="main-column">
             <div className="daily-summary">
@@ -721,8 +767,7 @@ function App() {
                   <div>
                     <h2>{profile.name}</h2>
                     <span>
-                      {s.done} de {s.total} cuidados{" "}
-                      {d.example ? "· plano ilustrativo" : ""}
+                      {s.done} de {s.total} cuidados
                     </span>
                   </div>
                   <strong>{s.percent}%</strong>

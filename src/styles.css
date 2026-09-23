@@ -874,6 +874,46 @@ h3 {
   line-height: 1.6;
   margin-top: 5px;
 }
+.nexo-session-card {
+  margin: 0 24px 17px;
+  padding: 16px 18px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+  border-left: 3px solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+.nexo-session-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--accent);
+  font-size: 10px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.nexo-session-card > strong {
+  display: block;
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+.nexo-session-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+}
+.nexo-session-stats > span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.nexo-session-stats svg {
+  color: var(--accent);
+  flex-shrink: 0;
+}
 .integration-note {
   display: flex;
   align-items: center;
@@ -929,15 +969,6 @@ h3 {
 }
 .bottom-nav {
   display: none;
-}
-.demo-note {
-  padding: 13px 18px;
-  border-radius: 10px;
-  color: #becbb9;
-  background: #b8cdb60c;
-  margin-bottom: 20px;
-  font-size: 12px;
-  line-height: 1.6;
 }
 .metrics {
   display: grid;
