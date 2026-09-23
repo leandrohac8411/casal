@@ -531,7 +531,6 @@ function App() {
             </h1>
             <p>Escolha um dia para abrir suas refeições, água e treino.</p>
           </div>
-          <span className="avatar">{profiles[p].initial}</span>
         </div>
         <div className="metrics">
           {[

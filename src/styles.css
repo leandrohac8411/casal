@@ -456,6 +456,9 @@ h3 {
 .mobile-brand {
   display: none;
 }
+.topbar-right .avatar {
+  display: none;
+}
 .content {
   max-width: 1480px;
   margin: 0 auto;
@@ -1561,6 +1564,7 @@ h3 {
     gap: 12px;
   }
   .topbar .avatar.small {
+    display: inline-flex;
     height: 33px;
     width: 33px;
     font-size: 14px;
