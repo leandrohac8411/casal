@@ -429,19 +429,19 @@ function App() {
                     {s.durationMin} min
                   </span>
                 )}
-                {Number.isFinite(s.exerciseCount) && (
+                {s.exerciseCount > 0 && (
                   <span>
                     <ListChecks size={14} />
                     {s.exerciseCount} exercícios
                   </span>
                 )}
-                {Number.isFinite(s.setCount) && (
+                {s.setCount > 0 && (
                   <span>
                     <Repeat size={14} />
                     {s.setCount} séries
                   </span>
                 )}
-                {Number.isFinite(s.totalVolume) && (
+                {s.totalVolume > 0 && (
                   <span>
                     <TrendingUp size={14} />
                     {Math.round(s.totalVolume).toLocaleString("pt-BR")} kg de volume
