@@ -901,7 +901,7 @@ function App() {
             className="mobile-brand brand-button"
             onClick={() => setPerson(null)}
           >
-            <Brand compact />
+            <Brand />
           </button>
           <div className="topbar-right">
             <button
