@@ -316,11 +316,31 @@ h3 {
 .welcome-footer {
   font-size: 11px;
   color: #aaa4af;
-  margin: 32px 0 0;
+  margin: 20px 0 0;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+}
+.verse-of-day {
+  margin: 22px auto 0;
+  padding: 18px 22px;
+  max-width: 420px;
+  border-top: 1px solid var(--line);
+}
+.verse-of-day > p {
+  font-size: 13px;
+  font-style: italic;
+  line-height: 1.7;
+  color: #c8c3cd;
+  margin: 16px 0 8px;
+}
+.verse-of-day > span {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 1.2px;
+  color: var(--accent);
+  text-transform: uppercase;
 }
 .app {
   min-height: 100dvh;
@@ -1930,7 +1950,14 @@ h3 {
   }
   .welcome-footer {
     font-size: 10px;
-    margin-top: 25px;
+    margin-top: 16px;
+  }
+  .verse-of-day {
+    margin-top: 16px;
+    padding: 14px 18px;
+  }
+  .verse-of-day > p {
+    font-size: 12px;
   }
   .modal {
     max-height: 90dvh;

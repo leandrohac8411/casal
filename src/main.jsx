@@ -40,6 +40,7 @@ import {
 } from "./domain";
 import { loadRecords, saveRecords, KEY } from "./store";
 import { nexoStatus } from "./nexo";
+import { verseOfDay } from "./verses";
 import "./styles.css";
 const iconProps = { size: 20, strokeWidth: 1.65 };
 const fmt = (d, options) => parseDate(d).toLocaleDateString("pt-BR", options);
@@ -801,6 +802,7 @@ function App() {
       </>
     );
   }
+  const verse = verseOfDay();
   if (!person)
     return (
       <div className="welcome theme-rose">
@@ -852,6 +854,10 @@ function App() {
           <div className="welcome-footer">
             <Heart size={14} />
             Feito para a vida real. Um dia de cada vez.
+          </div>
+          <div className="verse-of-day">
+            <p>&ldquo;{verse.text}&rdquo;</p>
+            <span>{verse.ref}</span>
           </div>
         </main>
       </div>
