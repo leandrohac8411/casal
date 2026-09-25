@@ -2235,7 +2235,7 @@ h3 {
   height: 68px;
   padding: 0 28px;
 }
-.land-nav .brand { font-size: 26px; }
+.land-nav .brand { width: 210px; }
 .land-hero {
   padding-top: 0;
   position: relative;
@@ -2367,6 +2367,7 @@ h3 {
   .land-p-grid { grid-template-columns: 1fr; }
   .land-p { border-right: 0 !important; }
   .land-hero-top { padding: 90px 0 40px; }
+  .land-nav .brand { width: 190px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .land-rv { opacity: 1 !important; transform: none !important; }
