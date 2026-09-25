@@ -154,7 +154,7 @@ function Landing({ onEnter }) {
   return (
     <div className="land">
       <header className={`land-nav ${navSolid ? "solid" : ""}`}>
-        <div className="land-wrap">
+        <div className="land-nav-inner">
           <Brand />
         </div>
       </header>

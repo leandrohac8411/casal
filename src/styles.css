@@ -2228,7 +2228,13 @@ h3 {
   transition: background 0.3s;
 }
 .land-nav.solid { background: rgba(23, 23, 27, 0.92); backdrop-filter: blur(8px); }
-.land-nav .land-wrap { display: flex; justify-content: space-between; align-items: center; height: 68px; }
+.land-nav-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 68px;
+  padding: 0 28px;
+}
 .land-nav .brand { font-size: 26px; }
 .land-hero {
   padding-top: 0;
