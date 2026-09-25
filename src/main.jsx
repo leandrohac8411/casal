@@ -27,7 +27,6 @@ import {
   Leaf,
   Coffee,
   Flame,
-  Menu,
 } from "lucide-react";
 import {
   profiles,
@@ -115,7 +114,6 @@ const landFaq = [
   },
 ];
 function Landing({ onEnter }) {
-  const [menuOpen, setMenuOpen] = useState(false);
   const [navSolid, setNavSolid] = useState(false);
   const [openFaq, setOpenFaq] = useState(0);
   useEffect(() => {
@@ -153,44 +151,17 @@ function Landing({ onEnter }) {
     els.forEach((el) => io.observe(el));
     return () => io.disconnect();
   }, []);
-  function goTo(id) {
-    setMenuOpen(false);
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
-  }
   return (
     <div className="land">
       <header className={`land-nav ${navSolid ? "solid" : ""}`}>
         <div className="land-wrap">
           <Brand />
-          <div className="land-nav-r">
-            <button
-              className="land-chip"
-              aria-label="Abrir menu"
-              aria-expanded={menuOpen}
-              onClick={() => setMenuOpen(true)}
-            >
-              <Menu size={16} />
-            </button>
-          </div>
         </div>
       </header>
-      <div
-        className={`land-menu ${menuOpen ? "open" : ""}`}
-        inert={!menuOpen}
+      <section
+        className="land-hero land-hero-photo"
+        style={{ "--hero-photo": `url(${import.meta.env.BASE_URL}landing/hero.webp)` }}
       >
-        <button
-          className="land-chip"
-          aria-label="Fechar menu"
-          onClick={() => setMenuOpen(false)}
-        >
-          <X size={16} />
-        </button>
-        <button onClick={() => goTo("land-features")}>Cuidados</button>
-        <button onClick={() => goTo("land-principles")}>Princípios</button>
-        <button onClick={() => goTo("land-faq")}>Dúvidas</button>
-        <button onClick={onEnter}>Entrar</button>
-      </div>
-      <section className="land-hero">
         <div className="land-wrap land-hero-top">
           <span className="land-eyebrow">
             <span />
@@ -210,13 +181,6 @@ function Landing({ onEnter }) {
               Entrar
               <i>{landArrow}</i>
             </button>
-          </div>
-        </div>
-        <div className="land-wrap">
-          <div className="land-hero-media land-rv">
-            <div className="land-ph">
-              <span>[ foto do casal, para adicionar depois ]</span>
-            </div>
           </div>
         </div>
       </section>

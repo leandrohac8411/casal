@@ -2228,85 +2228,32 @@ h3 {
 .land-nav.solid { background: rgba(23, 23, 27, 0.92); backdrop-filter: blur(8px); }
 .land-nav .land-wrap { display: flex; justify-content: space-between; align-items: center; height: 68px; }
 .land-nav .brand { font-size: 26px; }
-.land-nav-r { display: flex; gap: 8px; }
-.land-chip {
-  min-width: 46px;
-  height: 46px;
-  border-radius: 9px;
-  background: #202024;
-  border: 1px solid var(--l-line);
-  color: #f4f3ef;
-  display: grid;
-  place-items: center;
-  padding: 0 16px;
-  font: 700 13px var(--l-display);
-  letter-spacing: 0.1em;
-  cursor: pointer;
+.land-hero {
+  padding-top: 0;
+  position: relative;
 }
-
-.land-menu {
-  position: fixed;
-  inset: 0;
-  z-index: 60;
-  background: var(--l-acid);
-  color: var(--l-ink);
-  clip-path: circle(0 at calc(100% - 90px) 34px);
-  transition: clip-path 0.7s cubic-bezier(0.7, 0, 0.2, 1);
+.land-hero-photo {
+  min-height: 92vh;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 40px 8vw;
+  align-items: center;
+  background-image:
+    linear-gradient(100deg, var(--l-ink) 0%, var(--l-ink) 34%, rgba(23, 23, 27, 0.8) 52%, rgba(23, 23, 27, 0.25) 74%, transparent 92%),
+    var(--hero-photo);
+  background-size: cover;
+  background-position: 65% center;
+  background-repeat: no-repeat;
 }
-.land-menu.open { clip-path: circle(150% at calc(100% - 90px) 34px); }
-.land-menu button {
-  font: 900 clamp(40px, 9vw, 90px)/1 var(--l-display);
-  text-transform: uppercase;
-  text-align: left;
-  color: inherit;
-  display: block;
-  width: 100%;
-  cursor: pointer;
-}
-.land-menu button:hover { -webkit-text-stroke: 2px var(--l-ink); color: transparent; }
-.land-menu .land-chip { position: absolute; top: 24px; right: 24px; background: var(--l-ink); color: var(--l-acid); }
-
-.land-hero { padding-top: 70px; }
-.land-hero-top { padding: 40px 0 60px; }
+.land-hero-top { padding: 130px 0 70px; position: relative; z-index: 1; }
 .land-hero h1 { font-size: clamp(48px, 10vw, 130px); }
 .land-hero h1 .l2 { color: var(--l-acid); }
 .land-hero p.land-sub {
-  color: var(--l-muted);
+  color: #d9d7d1;
   font-size: 15px;
   max-width: 44ch;
   margin-top: 22px;
   line-height: 1.7;
 }
 .land-hero .land-cta-row { margin-top: 30px; }
-.land-hero-media {
-  position: relative;
-  height: min(52vh, 420px);
-  overflow: hidden;
-}
-.land-ph {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(120% 90% at 70% 30%, rgba(103, 211, 80, 0.16), transparent 55%),
-    repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.035) 0 2px, transparent 2px 14px),
-    linear-gradient(160deg, #2c2e33, #141518);
-  display: flex;
-  align-items: flex-end;
-  padding: 18px;
-  border-radius: 4px;
-}
-.land-ph.light {
-  background:
-    radial-gradient(110% 80% at 30% 20%, rgba(255, 255, 255, 0.5), transparent 60%),
-    repeating-linear-gradient(135deg, rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 14px),
-    linear-gradient(160deg, #cfcabd, #a8a293);
-}
-.land-ph span { font-size: 11px; color: #b9bbb4; background: rgba(0, 0, 0, 0.45); padding: 5px 10px; border-radius: 4px; }
-.land-ph.light span { color: #1c1c1c; background: rgba(255, 255, 255, 0.6); }
 
 .land-tear { position: relative; height: 40px; margin-top: -39px; z-index: 3; }
 .land-tear.up { margin-top: 0; margin-bottom: -39px; }
@@ -2397,12 +2344,19 @@ h3 {
   .land-p-grid { grid-template-columns: 1fr 1fr; }
   .land-p { border-bottom: 1px solid var(--l-line); }
   .land-p:nth-child(2n) { border-right: 0; }
-  .land-hero-media { height: 42vh; }
+  .land-hero-photo {
+    min-height: 78vh;
+    background-position: 72% center;
+    background-image:
+      linear-gradient(180deg, var(--l-ink) 0%, var(--l-ink) 40%, rgba(23, 23, 27, 0.85) 62%, rgba(23, 23, 27, 0.35) 85%, transparent 100%),
+      var(--hero-photo);
+  }
 }
 @media (max-width: 560px) {
   .land-feat-grid { grid-template-columns: 1fr; }
   .land-p-grid { grid-template-columns: 1fr; }
   .land-p { border-right: 0 !important; }
+  .land-hero-top { padding: 110px 0 60px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .land-rv { opacity: 1 !important; transform: none !important; }
