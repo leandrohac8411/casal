@@ -2353,20 +2353,23 @@ h3 {
   .land-p { border-bottom: 1px solid var(--l-line); }
   .land-p:nth-child(2n) { border-right: 0; }
   .land-hero-photo {
-    min-height: 82dvh;
-    align-items: flex-start;
-    background-position: 72% center;
+    min-height: 80dvh;
+    align-items: flex-end;
+    background-position: 68% center;
     background-image:
-      linear-gradient(180deg, var(--l-ink) 0%, var(--l-ink) 18%, rgba(23, 23, 27, 0.9) 40%, rgba(23, 23, 27, 0.4) 62%, transparent 78%),
+      linear-gradient(180deg, transparent 0%, transparent 38%, rgba(23, 23, 27, 0.3) 56%, rgba(23, 23, 27, 0.82) 76%, var(--l-ink) 96%),
       var(--hero-photo);
   }
-  .land-hero-top { padding-top: 90px; }
+  .land-hero-top { padding: 0 0 44px; }
+  .land-hero-top .land-eyebrow,
+  .land-hero-top h1,
+  .land-hero-top .land-sub { text-shadow: 0 2px 14px rgba(0, 0, 0, 0.65); }
 }
 @media (max-width: 560px) {
   .land-feat-grid { grid-template-columns: 1fr; }
   .land-p-grid { grid-template-columns: 1fr; }
   .land-p { border-right: 0 !important; }
-  .land-hero-top { padding: 150px 0 40px; }
+  .land-hero-top { padding-bottom: 36px; }
   .land-nav .brand { width: 250px; }
 }
 /* ===== Login ===== */
