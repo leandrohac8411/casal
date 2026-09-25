@@ -27,6 +27,10 @@ import {
   Leaf,
   Coffee,
   Flame,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import {
   profiles,
@@ -259,12 +263,113 @@ function Landing({ onEnter }) {
               <i>{landArrow}</i>
             </button>
           </div>
-          <div className="land-credit">
-            <Heart size={13} />
-            Feito para a vida real · Stephany &amp; Leandro
-          </div>
+
         </div>
       </footer>
+    </div>
+  );
+}
+function LoginPage({ onEnter, onBack }) {
+  const [showPw, setShowPw] = useState(false);
+  const [notice, setNotice] = useState("");
+  function say(text) {
+    setNotice(text);
+  }
+  return (
+    <div className="land login">
+      <div
+        className="login-photo"
+        style={{ "--login-photo": `url(${import.meta.env.BASE_URL}landing/login.webp)` }}
+      >
+        <div className="login-photo-inner">
+          <span className="land-eyebrow">
+            <span />
+            HÁBITOS MELHORES JUNTOS
+          </span>
+          <h1 className="land-d">
+            Vida real.
+            <br />
+            Rotina real.
+            <br />
+            <span className="l2">Resultados juntos.</span>
+          </h1>
+          <span className="login-rule" />
+        </div>
+      </div>
+      <div className="login-panel">
+        <div className="login-panel-inner">
+          <button className="login-brand" onClick={onBack} aria-label="Voltar ao início">
+            <Brand />
+          </button>
+          <h2 className="land-d login-title">
+            Bom ter você
+            <br />
+            <span className="l2">de volta.</span>
+          </h2>
+          <p className="login-sub">Continue de onde parou.</p>
+          <form
+            className="login-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              onEnter();
+            }}
+          >
+            <label className="login-field">
+              <span>E-mail</span>
+              <div className="login-input">
+                <Mail size={17} />
+                <input type="email" name="email" placeholder="seu@email.com" autoComplete="username" />
+              </div>
+            </label>
+            <label className="login-field">
+              <span>Senha</span>
+              <div className="login-input">
+                <Lock size={17} />
+                <input
+                  type={showPw ? "text" : "password"}
+                  name="password"
+                  placeholder="Sua senha"
+                  autoComplete="current-password"
+                />
+                <button
+                  type="button"
+                  className="login-eye"
+                  aria-label={showPw ? "Esconder senha" : "Mostrar senha"}
+                  onClick={() => setShowPw((v) => !v)}
+                >
+                  {showPw ? <EyeOff size={17} /> : <Eye size={17} />}
+                </button>
+              </div>
+            </label>
+            <div className="login-row">
+              <label className="login-remember">
+                <input type="checkbox" name="remember" />
+                Lembrar de mim
+              </label>
+              <button
+                type="button"
+                className="login-link"
+                onClick={() => say("Ainda não disponível nesta versão.")}
+              >
+                Esqueci minha senha
+              </button>
+            </div>
+            <button className="land-btn acid login-submit" type="submit">
+              Entrar
+              <i>{landArrow}</i>
+            </button>
+            {notice && <p className="login-notice">{notice}</p>}
+          </form>
+          <div className="login-divider">
+            <span>ou</span>
+          </div>
+          <p className="login-sub login-create-hint">Ainda não tem conta?</p>
+          <button className="land-btn login-create" onClick={onEnter}>
+            Criar minha conta
+            <i>{landArrow}</i>
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -278,7 +383,7 @@ function App() {
     [modal, setModal] = useState(null),
     [toast, setToast] = useState(""),
     [full, setFull] = useState(false),
-    [showLanding, setShowLanding] = useState(true);
+    [stage, setStage] = useState("landing");
   const toastTimer = useRef();
   useEffect(() => {
     const timer = setInterval(() => setToday(dateKey()), 30000);
@@ -924,8 +1029,15 @@ function App() {
     );
   }
   const verse = verseOfDay();
-  if (!person && showLanding)
-    return <Landing onEnter={() => setShowLanding(false)} />;
+  if (!person && stage === "landing")
+    return <Landing onEnter={() => setStage("login")} />;
+  if (!person && stage === "login")
+    return (
+      <LoginPage
+        onEnter={() => setStage("profiles")}
+        onBack={() => setStage("landing")}
+      />
+    );
   if (!person)
     return (
       <div className="welcome theme-rose">
