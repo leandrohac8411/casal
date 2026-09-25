@@ -2347,18 +2347,20 @@ h3 {
   .land-p { border-bottom: 1px solid var(--l-line); }
   .land-p:nth-child(2n) { border-right: 0; }
   .land-hero-photo {
-    min-height: 100dvh;
+    min-height: 82dvh;
+    align-items: flex-start;
     background-position: 72% center;
     background-image:
-      linear-gradient(180deg, var(--l-ink) 0%, var(--l-ink) 40%, rgba(23, 23, 27, 0.85) 62%, rgba(23, 23, 27, 0.35) 85%, transparent 100%),
+      linear-gradient(180deg, var(--l-ink) 0%, var(--l-ink) 18%, rgba(23, 23, 27, 0.9) 40%, rgba(23, 23, 27, 0.4) 62%, transparent 78%),
       var(--hero-photo);
   }
+  .land-hero-top { padding-top: 90px; }
 }
 @media (max-width: 560px) {
   .land-feat-grid { grid-template-columns: 1fr; }
   .land-p-grid { grid-template-columns: 1fr; }
   .land-p { border-right: 0 !important; }
-  .land-hero-top { padding: 110px 0 60px; }
+  .land-hero-top { padding: 90px 0 40px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .land-rv { opacity: 1 !important; transform: none !important; }
