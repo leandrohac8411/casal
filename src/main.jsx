@@ -27,6 +27,7 @@ import {
   Leaf,
   Coffee,
   Flame,
+  Menu,
 } from "lucide-react";
 import {
   profiles,
@@ -50,6 +51,259 @@ function Brand({ compact = false }) {
     </span>
   );
 }
+const landArrow = (
+  <svg viewBox="0 0 24 24" fill="none" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M5 12h14M13 6l6 6-6 6" />
+  </svg>
+);
+const landFeatures = [
+  {
+    Icon: Utensils,
+    title: "Alimentação",
+    text: "Refeições no seu ritmo, com planos simples e comida de verdade — não uma dieta de laboratório.",
+  },
+  {
+    Icon: Droplets,
+    title: "Água",
+    text: "O quanto cada um bebeu no dia, sem complicação nenhuma pra registrar.",
+  },
+  {
+    Icon: Dumbbell,
+    title: "Treino",
+    text: "Seus treinos e seus dias de descanso, marcados por você, no seu tempo.",
+  },
+  {
+    Icon: Heart,
+    title: "Casal",
+    text: "A rotina dos dois lado a lado — cada um no seu ritmo, os dois no mesmo caminho.",
+  },
+];
+const landPrinciples = [
+  {
+    title: "Vida real",
+    text: "Antes da dieta perfeita. Pizza, hambúrguer e churrasco não são falha, são parte da vida.",
+  },
+  {
+    title: "Menos decisões",
+    text: "Quanto menos você precisa pensar pra cuidar de si, mais fácil é continuar.",
+  },
+  {
+    title: "Consistência",
+    text: "Acima de perfeição. Um dia difícil não apaga os outros trinta que vieram antes.",
+  },
+  {
+    title: "Individual + casal",
+    text: "Metas e ritmos diferentes, sem precisar viver duas rotinas separadas.",
+  },
+];
+const landFaq = [
+  {
+    q: "Precisa pagar pra usar?",
+    a: "Não. Hoje é de uso pessoal, sem nenhum custo.",
+  },
+  {
+    q: "Onde ficam salvos meus registros?",
+    a: "Neste navegador, no seu aparelho. Sincronizar entre celular e computador está a caminho.",
+  },
+  {
+    q: "Funciona bem no celular?",
+    a: "Sim — foi pensado primeiro pro celular, com o quadro da casa pensado pra tela maior.",
+  },
+  {
+    q: "Dá pra usar sozinho, sem o parceiro?",
+    a: "Dá. Cada perfil é independente; usar os dois juntos é só um diferencial a mais.",
+  },
+];
+function Landing({ onEnter }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [navSolid, setNavSolid] = useState(false);
+  const [openFaq, setOpenFaq] = useState(0);
+  useEffect(() => {
+    const onScroll = () => setNavSolid(window.scrollY > 40);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+  useEffect(() => {
+    document.querySelectorAll("[data-tear]").forEach((el) => {
+      const pts = [];
+      let x = 0;
+      while (x < 100) {
+        pts.push(`${x.toFixed(1)}% ${(20 + Math.random() * 70).toFixed(1)}%`);
+        x += 0.6 + Math.random() * 2.2;
+      }
+      pts.push("100% 50%");
+      el.style.clipPath = el.hasAttribute("data-flip")
+        ? `polygon(0 0,100% 0,${pts.reverse().join(",")},0 50%)`
+        : `polygon(0 50%,${pts.join(",")},100% 100%,0 100%)`;
+    });
+  }, []);
+  useEffect(() => {
+    const els = document.querySelectorAll(".land-rv");
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("in");
+            io.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.2 },
+    );
+    els.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, []);
+  function goTo(id) {
+    setMenuOpen(false);
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+  }
+  return (
+    <div className="land">
+      <header className={`land-nav ${navSolid ? "solid" : ""}`}>
+        <div className="land-wrap">
+          <Brand />
+          <div className="land-nav-r">
+            <button
+              className="land-chip"
+              aria-label="Abrir menu"
+              aria-expanded={menuOpen}
+              onClick={() => setMenuOpen(true)}
+            >
+              <Menu size={16} />
+            </button>
+          </div>
+        </div>
+      </header>
+      <div
+        className={`land-menu ${menuOpen ? "open" : ""}`}
+        inert={!menuOpen}
+      >
+        <button
+          className="land-chip"
+          aria-label="Fechar menu"
+          onClick={() => setMenuOpen(false)}
+        >
+          <X size={16} />
+        </button>
+        <button onClick={() => goTo("land-features")}>Cuidados</button>
+        <button onClick={() => goTo("land-principles")}>Princípios</button>
+        <button onClick={() => goTo("land-faq")}>Dúvidas</button>
+        <button onClick={onEnter}>Entrar</button>
+      </div>
+      <section className="land-hero">
+        <div className="land-wrap land-hero-top">
+          <span className="land-eyebrow">
+            <span />
+            PEQUENOS CUIDADOS, TODOS OS DIAS
+          </span>
+          <h1 className="land-d">
+            Faz bem cuidar.
+            <br />
+            <span className="l2">Melhor ainda, juntos.</span>
+          </h1>
+          <p className="land-sub">
+            Refeições, água e treino — o de cada um, no seu ritmo — e a
+            rotina da casa, lado a lado.
+          </p>
+          <div className="land-cta-row">
+            <button className="land-btn acid" onClick={onEnter}>
+              Entrar
+              <i>{landArrow}</i>
+            </button>
+          </div>
+        </div>
+        <div className="land-wrap">
+          <div className="land-hero-media land-rv">
+            <div className="land-ph">
+              <span>[ foto do casal, para adicionar depois ]</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="land-tear to-paper" data-tear></div>
+      <section className="land-paper land-features" id="land-features">
+        <div className="land-wrap">
+          <h2 className="land-d">Cuidar dos dois, sem duplicar esforço.</h2>
+          <div className="land-feat-grid">
+            {landFeatures.map(({ Icon, title, text }) => (
+              <div className="land-feat land-rv" key={title}>
+                <Icon size={26} />
+                <h3>{title}</h3>
+                <p>{text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+      <div className="land-tear up to-paper" data-tear data-flip></div>
+
+      <section className="land-principles">
+        <div className="land-wrap">
+          <h2 className="land-d">Como a gente pensa isso.</h2>
+          <div className="land-p-grid">
+            {landPrinciples.map(({ title, text }) => (
+              <div className="land-p land-rv" key={title}>
+                <h3>{title}</h3>
+                <p>{text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="land-faq" id="land-faq">
+        <div className="land-wrap">
+          <h2 className="land-d">Dúvidas frequentes.</h2>
+          <div className="land-faq-grid">
+            {landFaq.map(({ q, a }, i) => (
+              <div className={`land-q ${openFaq === i ? "open" : ""}`} key={q}>
+                <button
+                  aria-expanded={openFaq === i}
+                  onClick={() => setOpenFaq(openFaq === i ? -1 : i)}
+                >
+                  {q}
+                  <span className="land-pm" />
+                </button>
+                <div className="land-a">
+                  <div>
+                    <p>{a}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <div className="land-marquee" aria-hidden="true">
+        <div className="land-track">
+          {Array.from({ length: 6 }, (_, i) => (
+            <b key={i}>
+              Hábitos melhores juntos <Heart size={34} fill="currentColor" />
+            </b>
+          ))}
+        </div>
+      </div>
+
+      <footer className="land-footer">
+        <div className="land-wrap">
+          <h2 className="land-d">Um dia de cada vez. Vamos começar?</h2>
+          <div className="land-cta-row">
+            <button className="land-btn acid" onClick={onEnter}>
+              Entrar
+              <i>{landArrow}</i>
+            </button>
+          </div>
+          <div className="land-credit">
+            <Heart size={13} />
+            Feito para a vida real · Stephany &amp; Leandro
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
 function App() {
   const [person, setPerson] = useState(null),
     [view, setView] = useState("today"),
@@ -59,7 +313,8 @@ function App() {
     [month, setMonth] = useState(dateKey().slice(0, 7)),
     [modal, setModal] = useState(null),
     [toast, setToast] = useState(""),
-    [full, setFull] = useState(false);
+    [full, setFull] = useState(false),
+    [showLanding, setShowLanding] = useState(true);
   const toastTimer = useRef();
   useEffect(() => {
     const timer = setInterval(() => setToday(dateKey()), 30000);
@@ -705,6 +960,8 @@ function App() {
     );
   }
   const verse = verseOfDay();
+  if (!person && showLanding)
+    return <Landing onEnter={() => setShowLanding(false)} />;
   if (!person)
     return (
       <div className="welcome theme-rose">
