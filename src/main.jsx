@@ -27,10 +27,6 @@ import {
   Leaf,
   Coffee,
   Flame,
-  Clock,
-  ListChecks,
-  Repeat,
-  TrendingUp,
 } from "lucide-react";
 import {
   profiles,
@@ -43,7 +39,6 @@ import {
   metrics,
 } from "./domain";
 import { loadRecords, saveRecords, KEY } from "./store";
-import { nexoStatus } from "./nexo";
 import { verseOfDay } from "./verses";
 import "./styles.css";
 const iconProps = { size: 20, strokeWidth: 1.65 };
@@ -64,8 +59,7 @@ function App() {
     [month, setMonth] = useState(dateKey().slice(0, 7)),
     [modal, setModal] = useState(null),
     [toast, setToast] = useState(""),
-    [full, setFull] = useState(false),
-    [nexo, setNexo] = useState({});
+    [full, setFull] = useState(false);
   const toastTimer = useRef();
   useEffect(() => {
     const timer = setInterval(() => setToday(dateKey()), 30000);
@@ -82,77 +76,6 @@ function App() {
       document.removeEventListener("fullscreenchange", fs);
     };
   }, []);
-  useEffect(() => {
-    Object.keys(profiles).forEach((p) => syncNexo(p));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  async function syncNexo(p) {
-    setNexo((s) => ({ ...s, [p]: { ...s[p], syncing: true, error: "" } }));
-    try {
-      const result = await nexoStatus(p);
-      if (result === null) {
-        setNexo((s) => ({ ...s, [p]: { syncing: false, error: "", configured: false } }));
-        return;
-      }
-      const { trainedDates = [], water = [], waterGoalMl, sessions = [] } = result;
-      const until = dateKey();
-      const trainedKeys = new Set(trainedDates.map((iso) => dateKey(new Date(iso))));
-      const waterByDate = new Map(water.map((w) => [w.date, w.amountMl]));
-      const sessionsByDate = new Map();
-      for (const s of sessions) {
-        if (!sessionsByDate.has(s.date)) sessionsByDate.set(s.date, []);
-        sessionsByDate.get(s.date).push(s);
-      }
-      const dates = new Set([...trainedKeys, ...waterByDate.keys(), ...sessionsByDate.keys()]);
-      if (waterGoalMl) dates.add(until);
-      const fresh = loadRecords();
-      let changed = false;
-      for (const key of dates) {
-        if (key > until) continue;
-        const existing = fresh[`${p}:${key}`];
-        const day = existing ? structuredClone(existing) : createDay(p, key);
-        let dayChanged = false;
-        if (trainedKeys.has(key) && day.workouts.length && day.workouts.some((w) => !w.done)) {
-          day.workouts.forEach((w) => {
-            w.done = true;
-            w.nexo = true;
-          });
-          dayChanged = true;
-        }
-        if (
-          sessionsByDate.has(key) &&
-          JSON.stringify(day.nexoSessions) !== JSON.stringify(sessionsByDate.get(key))
-        ) {
-          day.nexoSessions = sessionsByDate.get(key);
-          dayChanged = true;
-        }
-        if (waterByDate.has(key) && day.water !== waterByDate.get(key)) {
-          day.water = waterByDate.get(key);
-          day.waterNexo = true;
-          dayChanged = true;
-        }
-        if (waterGoalMl && day.waterGoal !== waterGoalMl) {
-          day.waterGoal = waterGoalMl;
-          dayChanged = true;
-        }
-        if (dayChanged) {
-          day.person = p;
-          fresh[`${p}:${key}`] = day;
-          changed = true;
-        }
-      }
-      if (changed) {
-        saveRecords(fresh);
-        setRecords(fresh);
-      }
-      setNexo((s) => ({ ...s, [p]: { syncing: false, error: "", configured: true, lastSync: Date.now() } }));
-    } catch {
-      setNexo((s) => ({
-        ...s,
-        [p]: { ...s[p], syncing: false, configured: true, error: "Não foi possível sincronizar com o NEXO Fit." },
-      }));
-    }
-  }
   const notify = (text) => {
     setToast(text);
     clearTimeout(toastTimer.current);
@@ -185,8 +108,6 @@ function App() {
     setSelected(today);
     setMonth(today.slice(0, 7));
     window.scrollTo(0, 0);
-    if (p === "house") Object.keys(profiles).forEach((pp) => syncNexo(pp));
-    else syncNexo(p);
   }
   function toggleMeal(p, d, id) {
     update(p, d.date, (v) => (v.done[id] = !v.done[id]));
@@ -321,25 +242,6 @@ function App() {
       </section>
     );
   }
-  function NexoStatus({ p }) {
-    return (
-      <div className="integration-note">
-        <Link2 size={14} />
-        <span>
-          NEXO Fit{" "}
-          <span>
-            {nexo[p]?.error
-              ? "· erro ao sincronizar"
-              : nexo[p]?.syncing
-                ? "· sincronizando…"
-                : nexo[p]?.configured
-                  ? "· sincronizado"
-                  : "· não configurado"}
-          </span>
-        </span>
-      </div>
-    );
-  }
   function Water({ p, d }) {
     return (
       <section className="panel water-panel">
@@ -376,14 +278,29 @@ function App() {
             }}
           />
         </div>
+        <form className="water-total-form" onSubmit={(event) => {
+          event.preventDefault();
+          const input = event.currentTarget.elements.total;
+          const raw = input.value.trim().replace(',', '.');
+          const liters = Number(raw);
+          if (!/^\d+(\.\d{1,3})?$/.test(raw) || !Number.isFinite(liters) || liters < 0) {
+            input.setCustomValidity('Informe o total em litros, por exemplo: 2,1.');
+            input.reportValidity();
+            return;
+          }
+          update(p, d.date, value => { value.water = Math.round(liters * 1000); });
+        }}>
+          <label htmlFor={`water-total-${p}-${d.date}`}>Quanto você bebeu neste dia?</label>
+          <div className="water-total-controls">
+            <div className="water-total-input"><input id={`water-total-${p}-${d.date}`} name="total" type="text" inputMode="decimal" required autoComplete="off" defaultValue={(d.water / 1000).toLocaleString('pt-BR', {maximumFractionDigits: 3})} placeholder="Ex.: 2,1" disabled={d.date !== today} onInput={event => event.currentTarget.setCustomValidity('')} /><span>litros</span></div>
+            <button type="submit" disabled={d.date !== today}>Salvar total</button>
+          </div>
+        </form>
         <p className="tiny">
-          {d.waterNexo
-            ? "Água sincronizada automaticamente do NEXO Fit."
-            : d.water >= d.waterGoal
-              ? "Meta de água alcançada. Muito bem!"
-              : "Sincroniza automaticamente com o NEXO Fit."}
+          {d.water >= d.waterGoal
+            ? "Meta de água alcançada. Muito bem!"
+            : "Informe o total do dia. Você pode corrigir depois."}
         </p>
-        <NexoStatus p={p} />
       </section>
     );
   }
@@ -396,43 +313,7 @@ function App() {
             <h2>Corpo em movimento</h2>
           </div>
         </div>
-        {d.nexoSessions?.length ? (
-          d.nexoSessions.map((s, i) => (
-            <div key={i} className="nexo-session-card">
-              <div className="nexo-session-head">
-                <CheckCheck size={15} />
-                <span>Treino concluído</span>
-              </div>
-              <strong>{s.workoutName || "Treino"}</strong>
-              <div className="nexo-session-stats">
-                {Number.isFinite(s.durationMin) && (
-                  <span>
-                    <Clock size={14} />
-                    {s.durationMin} min
-                  </span>
-                )}
-                {s.exerciseCount > 0 && (
-                  <span>
-                    <ListChecks size={14} />
-                    {s.exerciseCount} exercícios
-                  </span>
-                )}
-                {s.setCount > 0 && (
-                  <span>
-                    <Repeat size={14} />
-                    {s.setCount} séries
-                  </span>
-                )}
-                {s.totalVolume > 0 && (
-                  <span>
-                    <TrendingUp size={14} />
-                    {Math.round(s.totalVolume).toLocaleString("pt-BR")} kg de volume
-                  </span>
-                )}
-              </div>
-            </div>
-          ))
-        ) : d.workouts.length ? (
+        {d.workouts.length ? (
           d.workouts.map((w) => (
             <div key={w.id} className="workout-row">
               <span className="workout-glyph">
@@ -441,12 +322,7 @@ function App() {
               <div>
                 <strong>{w.name}</strong>
                 <span>
-                  {w.time} ·{" "}
-                  {w.done
-                    ? w.nexo
-                      ? "Concluído · NEXO Fit"
-                      : "Concluído"
-                    : w.detail}
+                  {w.time} · {w.done ? "Concluído" : w.detail}
                 </span>
               </div>
               <button
@@ -474,7 +350,6 @@ function App() {
             <span>Sem treino obrigatório neste dia.</span>
           </p>
         )}
-        <NexoStatus p={p} />
       </section>
     );
   }
