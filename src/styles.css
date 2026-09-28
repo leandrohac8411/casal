@@ -2353,16 +2353,26 @@ h3 {
   .land-p { border-bottom: 1px solid var(--l-line); }
   .land-p:nth-child(2n) { border-right: 0; }
   .land-hero-photo {
-    min-height: 80dvh;
-    align-items: flex-end;
-    background-color: var(--l-ink);
-    background-position: center top;
-    background-size: contain;
-    background-image:
-      linear-gradient(180deg, transparent 0%, transparent 26%, rgba(23, 23, 27, 0.55) 34%, var(--l-ink) 42%),
-      var(--hero-photo);
+    min-height: 0;
+    display: block;
+    padding-top: 90vw;
+    background: none;
   }
-  .land-hero-top { padding: 0 0 44px; }
+  .land-hero-photo::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 90vw;
+    background-image:
+      linear-gradient(180deg, transparent 0%, transparent 62%, rgba(23, 23, 27, 0.55) 82%, var(--l-ink) 100%),
+      var(--hero-photo);
+    background-size: cover;
+    background-position: 65% center;
+    background-repeat: no-repeat;
+  }
+  .land-hero-top { position: relative; padding: 24px 0 44px; }
   .land-hero-top .land-eyebrow,
   .land-hero-top h1,
   .land-hero-top .land-sub { text-shadow: 0 2px 14px rgba(0, 0, 0, 0.65); }
