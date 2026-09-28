@@ -31,7 +31,9 @@ Sem integração NEXO. O restante do app (refeições, água, treinos, calendár
 
 ## Firebase
 
-Projeto configurado via variáveis de ambiente (ver `.env.example`): `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_STORAGE_BUCKET`, `VITE_FIREBASE_MESSAGING_SENDER_ID`, `VITE_FIREBASE_APP_ID`. Sem essas variáveis, o cadastro mostra um aviso e não quebra o resto do app. Habilitar no console do Firebase: Authentication (e-mail/senha) e Firestore Database. Coleções: `users/{uid}` (perfil, onboarding, `coupleId`) e `couples/{id}` (`memberUids`, `inviteCode`).
+Projeto configurado via variáveis de ambiente (ver `.env.example`): `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_STORAGE_BUCKET`, `VITE_FIREBASE_MESSAGING_SENDER_ID`, `VITE_FIREBASE_APP_ID`. Sem essas variáveis, o cadastro mostra um aviso e não quebra o resto do app. Habilitar no console do Firebase: Authentication (e-mail/senha) e Firestore Database. Coleções: `users/{uid}` (perfil, onboarding, `coupleId`), `couples/{id}` (`memberUids`, `inviteCode`) e `profilePhotos/{personKey}` (foto de cada perfil).
+
+Fotos de perfil não usam o Firebase Storage (exige plano pago). São comprimidas no navegador e salvas como base64 direto no documento do Firestore — dentro do limite de 1 MB por documento.
 
 ## Próxima integração
 

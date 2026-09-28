@@ -11,8 +11,7 @@ import {
   arrayUnion,
   serverTimestamp,
 } from "firebase/firestore";
-import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
-import { db, storage } from "./firebase";
+import { db } from "./firebase";
 
 export function userRef(uid) {
   return doc(db, "users", uid);
@@ -82,10 +81,32 @@ export async function joinCoupleByCode(uid, code) {
   return { coupleId: coupleDoc.id };
 }
 
+function compressImage(file, maxSize = 360, quality = 0.75) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("Não foi possível ler a imagem."));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error("Arquivo de imagem inválido."));
+      img.onload = () => {
+        const scale = Math.min(1, maxSize / Math.max(img.width, img.height));
+        const w = Math.round(img.width * scale);
+        const h = Math.round(img.height * scale);
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 export async function uploadProfilePhoto(personKey, file) {
-  const fileRef = storageRef(storage, `profile-photos/${personKey}`);
-  await uploadBytes(fileRef, file);
-  const url = await getDownloadURL(fileRef);
+  const url = await compressImage(file);
+  if (url.length > 900000) throw new Error("Imagem grande demais mesmo comprimida.");
   await setDoc(doc(db, "profilePhotos", personKey), { url, updatedAt: serverTimestamp() });
   return url;
 }
