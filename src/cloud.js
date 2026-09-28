@@ -11,7 +11,8 @@ import {
   arrayUnion,
   serverTimestamp,
 } from "firebase/firestore";
-import { db } from "./firebase";
+import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
+import { db, storage } from "./firebase";
 
 export function userRef(uid) {
   return doc(db, "users", uid);
@@ -79,4 +80,22 @@ export async function joinCoupleByCode(uid, code) {
   await updateDoc(coupleDoc.ref, { memberUids: arrayUnion(uid) });
   await updateDoc(userRef(uid), { coupleId: coupleDoc.id });
   return { coupleId: coupleDoc.id };
+}
+
+export async function uploadProfilePhoto(personKey, file) {
+  const fileRef = storageRef(storage, `profile-photos/${personKey}`);
+  await uploadBytes(fileRef, file);
+  const url = await getDownloadURL(fileRef);
+  await setDoc(doc(db, "profilePhotos", personKey), { url, updatedAt: serverTimestamp() });
+  return url;
+}
+
+export function subscribeProfilePhotos(callback) {
+  return onSnapshot(collection(db, "profilePhotos"), (snap) => {
+    const map = {};
+    snap.forEach((d) => {
+      map[d.id] = d.data().url;
+    });
+    callback(map);
+  });
 }

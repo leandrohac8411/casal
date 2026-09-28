@@ -31,6 +31,7 @@ import {
   Lock,
   Eye,
   EyeOff,
+  Camera,
 } from "lucide-react";
 import {
   profiles,
@@ -49,6 +50,7 @@ import { firebaseReady } from "./firebase";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "./firebase";
 import Onboarding from "./Onboarding";
+import { uploadProfilePhoto, subscribeProfilePhotos } from "./cloud";
 import "./styles.css";
 const iconProps = { size: 20, strokeWidth: 1.65 };
 const fmt = (d, options) => parseDate(d).toLocaleDateString("pt-BR", options);
@@ -477,8 +479,16 @@ function App() {
     [modal, setModal] = useState(null),
     [toast, setToast] = useState(""),
     [full, setFull] = useState(false),
-    [stage, setStage] = useState("landing");
+    [stage, setStage] = useState("landing"),
+    [photos, setPhotos] = useState({}),
+    [uploadingPhoto, setUploadingPhoto] = useState(false);
   const toastTimer = useRef();
+  const photoInputRef = useRef();
+  const pendingPhotoPerson = useRef(null);
+  useEffect(() => {
+    if (!firebaseReady) return;
+    return subscribeProfilePhotos(setPhotos);
+  }, []);
   useEffect(() => {
     const timer = setInterval(() => setToday(dateKey()), 30000);
     const sync = (e) => {
@@ -499,6 +509,28 @@ function App() {
     clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(() => setToast(""), 3500);
   };
+  function openPhotoPicker(p) {
+    if (!firebaseReady) {
+      notify("O upload de foto ainda está sendo configurado.");
+      return;
+    }
+    pendingPhotoPerson.current = p;
+    photoInputRef.current?.click();
+  }
+  async function handlePhotoFile(e) {
+    const file = e.target.files[0];
+    const p = pendingPhotoPerson.current;
+    e.target.value = "";
+    if (!file || !p) return;
+    setUploadingPhoto(true);
+    try {
+      await uploadProfilePhoto(p, file);
+    } catch {
+      notify("Não foi possível enviar a foto.");
+    } finally {
+      setUploadingPhoto(false);
+    }
+  }
   const dayFor = (p, key = selected) =>
     records[`${p}:${key}`] || createDay(p, key);
   function update(p, key, fn) {
@@ -1038,7 +1070,11 @@ function App() {
             return (
               <div className={`person-board theme-${profile.color}`} key={p}>
                 <div className="board-person">
-                  <span className="avatar">{profile.initial}</span>
+                  {photos[p] ? (
+                    <img className="avatar avatar-photo" src={photos[p]} alt={profile.name} />
+                  ) : (
+                    <span className="avatar">{profile.initial}</span>
+                  )}
                   <div>
                     <h2>{profile.name}</h2>
                     <span>
@@ -1152,6 +1188,13 @@ function App() {
             Seu espaço para comer bem, se movimentar
             <br className="desktop-break" /> e celebrar cada pequeno passo.
           </p>
+          <input
+            type="file"
+            accept="image/*"
+            ref={photoInputRef}
+            style={{ display: "none" }}
+            onChange={handlePhotoFile}
+          />
           <div className="profile-choices">
             {Object.entries(profiles).map(([p, profile]) => (
               <button
@@ -1159,9 +1202,31 @@ function App() {
                 className={`profile-card theme-${profile.color}`}
                 onClick={() => enter(p)}
               >
-                <span className="profile-top">
-                  <span className="avatar">{profile.initial}</span>
-                  <ArrowUpRight size={23} />
+                <span
+                  className="profile-photo-wrap"
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Trocar foto de ${profile.name}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openPhotoPicker(p);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      openPhotoPicker(p);
+                    }
+                  }}
+                >
+                  {photos[p] ? (
+                    <img className="profile-photo" src={photos[p]} alt={profile.name} />
+                  ) : (
+                    <span className="avatar profile-photo-fallback">{profile.initial}</span>
+                  )}
+                  <span className="profile-photo-edit">
+                    <Camera size={14} />
+                  </span>
                 </span>
                 <span className="profile-greeting">MEU MOMENTO DE CUIDADO</span>
                 <strong>{profile.name}</strong>

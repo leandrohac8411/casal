@@ -131,6 +131,9 @@ h3 {
   height: 38px;
   font-size: 16px;
 }
+.avatar-photo {
+  object-fit: cover;
+}
 .icon-button {
   width: 38px;
   height: 38px;
@@ -246,7 +249,7 @@ h3 {
   background: linear-gradient(140deg, var(--tint), #ffffff02);
   border-radius: 20px;
   padding: 25px 27px;
-  text-align: left;
+  text-align: center;
   transition:
     border-color 0.2s,
     transform 0.2s;
@@ -255,23 +258,47 @@ h3 {
   border-color: var(--accent);
   transform: translateY(-3px);
 }
-.profile-top {
+.profile-photo-wrap {
+  position: relative;
+  display: block;
+  width: 96px;
+  height: 96px;
+  margin: 0 auto;
+  cursor: pointer;
+  border-radius: 50%;
+}
+.profile-photo {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+.profile-photo-fallback {
+  width: 96px;
+  height: 96px;
+  font-size: 36px;
+}
+.profile-photo-edit {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #111;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  color: var(--accent);
-}
-.profile-top .avatar {
-  height: 53px;
-  width: 53px;
-  font-size: 22px;
+  justify-content: center;
+  border: 2px solid #17171b;
 }
 .profile-greeting {
   display: block;
   font-size: 9px;
   letter-spacing: 1.4px;
   color: var(--muted);
-  margin: 30px 0 9px;
+  margin: 16px 0 9px;
 }
 .profile-card > strong {
   font-family: Manrope, sans-serif;
@@ -1886,19 +1913,24 @@ h3 {
     padding: 20px 17px;
     border-radius: 16px;
   }
-  .profile-top .avatar {
-    width: 43px;
-    height: 43px;
-    font-size: 18px;
+  .profile-photo-wrap,
+  .profile-photo,
+  .profile-photo-fallback {
+    width: 72px;
+    height: 72px;
   }
-  .profile-top > svg {
-    width: 19px;
+  .profile-photo-fallback {
+    font-size: 28px;
+  }
+  .profile-photo-edit {
+    width: 26px;
+    height: 26px;
   }
   .profile-greeting {
     font-size: 7px;
     line-height: 1.6;
     letter-spacing: 1px;
-    margin-top: 23px;
+    margin-top: 14px;
   }
   .profile-card > strong {
     font-size: 23px;
@@ -2352,6 +2384,11 @@ h3 {
   .land-p-grid { grid-template-columns: 1fr 1fr; }
   .land-p { border-bottom: 1px solid var(--l-line); }
   .land-p:nth-child(2n) { border-right: 0; }
+  .land-hero .land-cta-row .land-btn {
+    width: 100%;
+    justify-content: space-between;
+    padding-left: 22px;
+  }
   .land-hero-photo {
     min-height: 0;
     display: block;
