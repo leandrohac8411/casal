@@ -2369,7 +2369,7 @@ h3 {
       linear-gradient(180deg, transparent 0%, transparent 62%, rgba(23, 23, 27, 0.55) 82%, var(--l-ink) 100%),
       var(--hero-photo);
     background-size: cover;
-    background-position: 78% center;
+    background-position: 88% center;
     background-repeat: no-repeat;
   }
   .land-hero-top { position: relative; padding: 24px 0 44px; }
