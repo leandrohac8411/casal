@@ -2355,9 +2355,11 @@ h3 {
   .land-hero-photo {
     min-height: 80dvh;
     align-items: flex-end;
-    background-position: 68% center;
+    background-color: var(--l-ink);
+    background-position: center top;
+    background-size: contain;
     background-image:
-      linear-gradient(180deg, transparent 0%, transparent 38%, rgba(23, 23, 27, 0.3) 56%, rgba(23, 23, 27, 0.82) 76%, var(--l-ink) 96%),
+      linear-gradient(180deg, transparent 0%, transparent 26%, rgba(23, 23, 27, 0.55) 34%, var(--l-ink) 42%),
       var(--hero-photo);
   }
   .land-hero-top { padding: 0 0 44px; }
