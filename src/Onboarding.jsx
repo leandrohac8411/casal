@@ -11,7 +11,7 @@ const empty = {
   targetWeight: "",
   activityLevel: "",
   sleepHours: "",
-  mealTimes: "",
+  mealTimes: [],
   trainDays: [],
   trainTime: "",
   mealsPerDay: "",
@@ -177,12 +177,17 @@ export default function Onboarding({ uid, name, onDone }) {
           <Field label="Horas de sono por noite">
             <input type="number" value={data.sleepHours} onChange={(e) => set("sleepHours", e.target.value)} placeholder="ex: 7" />
           </Field>
-          <Field label="Horários habituais das refeições">
-            <input
-              type="text"
+          <Field label="Refeições que costuma fazer">
+            <MultiChips
+              options={[
+                ["pre", "Pré-treino"],
+                ["cafe", "Café da manhã"],
+                ["almoco", "Almoço"],
+                ["lanche", "Lanche da tarde"],
+                ["jantar", "Jantar"],
+              ]}
               value={data.mealTimes}
-              onChange={(e) => set("mealTimes", e.target.value)}
-              placeholder="ex: 7h, 9h, 12h, 16h, 20h"
+              onChange={(v) => set("mealTimes", v)}
             />
           </Field>
           <Field label="Dias que treina">
