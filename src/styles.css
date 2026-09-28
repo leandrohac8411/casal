@@ -2489,3 +2489,50 @@ h3 {
   .land-rv { opacity: 1 !important; transform: none !important; }
   .land-track { animation: none !important; }
 }
+
+/* ===== Onboarding ===== */
+.login-error { color: #ff8a8a; }
+.ob { min-height: 100dvh; display: flex; align-items: center; justify-content: center; padding: 48px 20px; }
+.ob-panel { width: min(560px, 100%); }
+.ob-progress { display: flex; gap: 6px; margin-bottom: 26px; }
+.ob-dot { height: 4px; flex: 1; border-radius: 2px; background: var(--l-line); }
+.ob-dot.on { background: var(--l-acid); }
+.ob-title { font-size: clamp(28px, 5vw, 40px); margin-bottom: 22px; }
+.ob-form { display: flex; flex-direction: column; gap: 18px; }
+.ob-field { display: flex; flex-direction: column; gap: 8px; }
+.ob-field > span { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--l-muted); }
+.ob-field input[type="text"],
+.ob-field input[type="number"] {
+  background: #ffffff0d;
+  border: 1px solid var(--l-line);
+  border-radius: 8px;
+  padding: 13px 14px;
+  color: #f4f3ef;
+  font-size: 15px;
+  width: 100%;
+}
+.ob-field input:focus { outline: none; border-color: var(--l-acid); }
+.ob-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.ob-chip {
+  all: unset;
+  cursor: pointer;
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--l-line);
+  font-size: 13px;
+  color: #d9d7d1;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+.ob-chip.on { background: var(--l-acid); border-color: var(--l-acid); color: var(--l-ink); font-weight: 700; }
+.ob-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 30px; gap: 12px; }
+.ob-back { background: transparent; }
+.ob-next { margin-left: auto; }
+.ob-error { color: #ff8a8a; font-size: 13px; margin-top: 6px; }
+.ob-couple-choices { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
+.ob-skip { all: unset; cursor: pointer; font-size: 13px; color: var(--l-muted); text-decoration: underline; text-underline-offset: 3px; }
+.ob-couple-panel { display: flex; flex-direction: column; gap: 14px; align-items: flex-start; }
+.ob-code { font: 900 34px/1 var(--l-display); letter-spacing: 0.1em; color: var(--l-acid); }
+.ob-notice { color: var(--l-acid); font-size: 13px; }
+@media (max-width: 560px) {
+  .ob { padding: 32px 20px; }
+}

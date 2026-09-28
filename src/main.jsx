@@ -44,6 +44,11 @@ import {
 } from "./domain";
 import { loadRecords, saveRecords, KEY } from "./store";
 import { verseOfDay } from "./verses";
+import { AuthProvider, useAuth } from "./AuthProvider";
+import { firebaseReady } from "./firebase";
+import { sendPasswordResetEmail } from "firebase/auth";
+import { auth } from "./firebase";
+import Onboarding from "./Onboarding";
 import "./styles.css";
 const iconProps = { size: 20, strokeWidth: 1.65 };
 const fmt = (d, options) => parseDate(d).toLocaleDateString("pt-BR", options);
@@ -269,11 +274,61 @@ function Landing({ onEnter }) {
     </div>
   );
 }
-function LoginPage({ onEnter, onBack }) {
+function authErrorMessage(err) {
+  const code = err && err.code ? err.code : "";
+  if (code.includes("email-already-in-use")) return "Esse e-mail já tem uma conta.";
+  if (code.includes("invalid-email")) return "E-mail inválido.";
+  if (code.includes("weak-password")) return "A senha precisa ter pelo menos 6 caracteres.";
+  if (
+    code.includes("user-not-found") ||
+    code.includes("wrong-password") ||
+    code.includes("invalid-credential")
+  )
+    return "E-mail ou senha incorretos.";
+  if (code.includes("too-many-requests")) return "Muitas tentativas. Tente novamente em instantes.";
+  return "Não foi possível continuar. Tente novamente.";
+}
+function LoginPage({ onBack }) {
+  const { signUp, signIn } = useAuth();
+  const [mode, setMode] = useState("login");
   const [showPw, setShowPw] = useState(false);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [notice, setNotice] = useState("");
-  function say(text) {
-    setNotice(text);
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const signup = mode === "signup";
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setNotice("");
+    if (!firebaseReady) {
+      setError("O cadastro na nuvem ainda está sendo configurado. Volte em instantes.");
+      return;
+    }
+    setBusy(true);
+    setError("");
+    try {
+      if (signup) await signUp(name, email, password);
+      else await signIn(email, password);
+    } catch (err) {
+      setError(authErrorMessage(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function handleForgot() {
+    setError("");
+    if (!email) {
+      setNotice("Digite seu e-mail acima para receber o link de redefinição.");
+      return;
+    }
+    try {
+      await sendPasswordResetEmail(auth, email);
+      setNotice("Enviamos um link de redefinição para o seu e-mail.");
+    } catch (err) {
+      setError(authErrorMessage(err));
+    }
   }
   return (
     <div className="land login">
@@ -302,23 +357,53 @@ function LoginPage({ onEnter, onBack }) {
             <Brand />
           </button>
           <h2 className="land-d login-title">
-            Bom ter você
-            <br />
-            <span className="l2">de volta.</span>
+            {signup ? (
+              <>
+                Criar
+                <br />
+                <span className="l2">sua conta.</span>
+              </>
+            ) : (
+              <>
+                Bom ter você
+                <br />
+                <span className="l2">de volta.</span>
+              </>
+            )}
           </h2>
-          <p className="login-sub">Continue de onde parou.</p>
-          <form
-            className="login-form"
-            onSubmit={(e) => {
-              e.preventDefault();
-              onEnter();
-            }}
-          >
+          <p className="login-sub">
+            {signup ? "Leva menos de um minuto." : "Continue de onde parou."}
+          </p>
+          <form className="login-form" onSubmit={handleSubmit}>
+            {signup && (
+              <label className="login-field">
+                <span>Nome</span>
+                <div className="login-input">
+                  <input
+                    type="text"
+                    name="name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Seu nome"
+                    autoComplete="name"
+                    required
+                  />
+                </div>
+              </label>
+            )}
             <label className="login-field">
               <span>E-mail</span>
               <div className="login-input">
                 <Mail size={17} />
-                <input type="email" name="email" placeholder="seu@email.com" autoComplete="username" />
+                <input
+                  type="email"
+                  name="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="seu@email.com"
+                  autoComplete="username"
+                  required
+                />
               </div>
             </label>
             <label className="login-field">
@@ -328,8 +413,12 @@ function LoginPage({ onEnter, onBack }) {
                 <input
                   type={showPw ? "text" : "password"}
                   name="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   placeholder="Sua senha"
-                  autoComplete="current-password"
+                  autoComplete={signup ? "new-password" : "current-password"}
+                  minLength={6}
+                  required
                 />
                 <button
                   type="button"
@@ -341,31 +430,36 @@ function LoginPage({ onEnter, onBack }) {
                 </button>
               </div>
             </label>
-            <div className="login-row">
-              <label className="login-remember">
-                <input type="checkbox" name="remember" />
-                Lembrar de mim
-              </label>
-              <button
-                type="button"
-                className="login-link"
-                onClick={() => say("Ainda não disponível nesta versão.")}
-              >
-                Esqueci minha senha
-              </button>
-            </div>
-            <button className="land-btn acid login-submit" type="submit">
-              Entrar
+            {!signup && (
+              <div className="login-row">
+                <span />
+                <button type="button" className="login-link" onClick={handleForgot}>
+                  Esqueci minha senha
+                </button>
+              </div>
+            )}
+            <button className="land-btn acid login-submit" type="submit" disabled={busy}>
+              {busy ? "Um momento..." : signup ? "Criar conta" : "Entrar"}
               <i>{landArrow}</i>
             </button>
             {notice && <p className="login-notice">{notice}</p>}
+            {error && <p className="login-notice login-error">{error}</p>}
           </form>
           <div className="login-divider">
             <span>ou</span>
           </div>
-          <p className="login-sub login-create-hint">Ainda não tem conta?</p>
-          <button className="land-btn login-create" onClick={onEnter}>
-            Criar minha conta
+          <p className="login-sub login-create-hint">
+            {signup ? "Já tem conta?" : "Ainda não tem conta?"}
+          </p>
+          <button
+            className="land-btn login-create"
+            onClick={() => {
+              setMode(signup ? "login" : "signup");
+              setError("");
+              setNotice("");
+            }}
+          >
+            {signup ? "Entrar" : "Criar minha conta"}
             <i>{landArrow}</i>
           </button>
         </div>
@@ -1029,15 +1123,14 @@ function App() {
     );
   }
   const verse = verseOfDay();
-  if (!person && stage === "landing")
+  const { user, userDoc, loading: authLoading } = useAuth();
+  if (authLoading) return null;
+  if (!user && stage === "landing")
     return <Landing onEnter={() => setStage("login")} />;
-  if (!person && stage === "login")
-    return (
-      <LoginPage
-        onEnter={() => setStage("profiles")}
-        onBack={() => setStage("landing")}
-      />
-    );
+  if (!user && stage !== "landing") return <LoginPage onBack={() => setStage("landing")} />;
+  if (user && !userDoc) return null;
+  if (user && userDoc && !userDoc.onboardingComplete)
+    return <Onboarding uid={user.uid} name={userDoc.name} onDone={() => {}} />;
   if (!person)
     return (
       <div className="welcome theme-rose">
@@ -1358,5 +1451,9 @@ function Modal({ children, onClose }) {
     </dialog>
   );
 }
-createRoot(document.getElementById("root")).render(<App />);
+createRoot(document.getElementById("root")).render(
+  <AuthProvider>
+    <App />
+  </AuthProvider>,
+);
 

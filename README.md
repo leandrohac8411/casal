@@ -21,19 +21,26 @@ Produção: `npm run build`. Conferência local da produção: `npm run preview`
 - Histórico com cópia do planejamento de cada dia registrado; trocar plano não modifica outras datas.
 - Persistência em localStorage e atualização entre abas do mesmo navegador. Sem sincronização entre dispositivos.
 - Layout responsivo, navegação por teclado, modal nativo e preferência por movimento reduzido.
+- Cadastro e login reais com Firebase Authentication (e-mail/senha), recuperação de senha por e-mail.
+- Onboarding em etapas após o cadastro (dados pessoais, objetivo, rotina, alimentação, treino), salvo em Firestore.
+- Vínculo do casal por código de convite (gera código, o parceiro entra com ele para vincular as contas).
 
 ## Limites desta etapa
 
-Sem Firebase, autenticação ou integração NEXO. Selecionar perfil não é autenticar. Os registros desta prévia ficam neste navegador. Dados de Leandro são explicitamente ilustrativos; não representam prescrição. A programação semanal dos treinos é um exemplo visual. Planos de Stephany transcritos da referência fornecida, sem cálculo nutricional validado.
+Sem integração NEXO. O restante do app (refeições, água, treinos, calendário) continua em localStorage, ainda não migrado para o Firestore — só o cadastro/onboarding usa a nuvem por enquanto. Dados de Leandro são explicitamente ilustrativos; não representam prescrição. A programação semanal dos treinos é um exemplo visual. Planos de Stephany transcritos da referência fornecida, sem cálculo nutricional validado. As respostas do onboarding ainda não alimentam a dieta/treino gerados — isso é a próxima etapa.
+
+## Firebase
+
+Projeto configurado via variáveis de ambiente (ver `.env.example`): `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_STORAGE_BUCKET`, `VITE_FIREBASE_MESSAGING_SENDER_ID`, `VITE_FIREBASE_APP_ID`. Sem essas variáveis, o cadastro mostra um aviso e não quebra o resto do app. Habilitar no console do Firebase: Authentication (e-mail/senha) e Firestore Database. Coleções: `users/{uid}` (perfil, onboarding, `coupleId`) e `couples/{id}` (`memberUids`, `inviteCode`).
 
 ## Próxima integração
 
-`src/store.js` concentra a persistência. `src/domain.js` concentra templates, snapshots e cálculo diário. Ao integrar Firebase, substituir o armazenamento por repositório com assinatura em tempo real, isolamento de acesso e operações transacionais. Não usar regras públicas de banco. Dados nutricionais ainda precisam de fonte validada e metas reais de cada perfil.
+`src/store.js` concentra a persistência local (refeições, água, treinos). `src/domain.js` concentra templates, snapshots e cálculo diário. `src/cloud.js` concentra a persistência no Firestore (usuário, onboarding, vínculo do casal). Próximo passo: migrar os registros diários para o Firestore por casal, e usar as respostas do onboarding para gerar dieta/treino personalizados em vez dos planos fixos atuais.
 
-Para Vercel: importar este projeto, preset Vite, comando `npm run build`, saída `dist`. Esta entrega não foi publicada e não acessou o banco do NEXO.
+Para Vercel: importar este projeto, preset Vite, comando `npm run build`, saída `dist`, e configurar as variáveis `VITE_FIREBASE_*` no painel do projeto.
 
 ## XAMPP
 
-Projeto instalado em C:\xampp\htdocs\casal. Com Apache iniciado, abra http://localhost/casal/. O .htaccess serve dist/index.html. Para atualizar após editar o código: npm install e npm run build:xampp nesta pasta. Para Vercel, use npm run build (base padrão). Firebase e NEXO ainda não estão integrados. Os registros de localhost:5173 não são migrados automaticamente, pois são outra origem do navegador.
+Projeto instalado em C:\xampp\htdocs\casal. Com Apache iniciado, abra http://localhost/casal/. O .htaccess serve dist/index.html. Para atualizar após editar o código: npm install e npm run build:xampp nesta pasta. Para Vercel, use npm run build (base padrão). Os registros de localhost:5173 não são migrados automaticamente, pois são outra origem do navegador.
 
 
