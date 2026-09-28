@@ -2548,7 +2548,12 @@ h3 {
   font-size: 15px;
   width: 100%;
 }
-.ob-field input:focus { outline: none; border-color: var(--l-acid); }
+.ob-field input:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--l-acid) 55%, var(--l-line));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--l-acid) 18%, transparent);
+}
+.ob-hint { font-size: 12px; color: var(--l-muted); margin: -2px 0 0; line-height: 1.5; }
 .ob-chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .ob-chip {
   all: unset;

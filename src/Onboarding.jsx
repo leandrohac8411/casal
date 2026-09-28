@@ -12,7 +12,8 @@ const empty = {
   activityLevel: "",
   sleepHours: "",
   mealTimes: "",
-  trainDays: "",
+  trainDays: [],
+  trainTime: "",
   mealsPerDay: "",
   eatsVeggies: "",
   avoidFoods: "",
@@ -32,15 +33,39 @@ const empty = {
   limitations: "",
 };
 
-function Chips({ options, value, onChange }) {
+function Chips({ options, value, onChange, hints }) {
+  return (
+    <>
+      <div className="ob-chips">
+        {options.map(([val, label]) => (
+          <button
+            key={val}
+            type="button"
+            className={`ob-chip ${value === val ? "on" : ""}`}
+            onClick={() => onChange(val)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+      {hints && value && hints[value] && <p className="ob-hint">{hints[value]}</p>}
+    </>
+  );
+}
+
+function MultiChips({ options, value, onChange }) {
+  const list = value || [];
+  function toggle(val) {
+    onChange(list.includes(val) ? list.filter((v) => v !== val) : [...list, val]);
+  }
   return (
     <div className="ob-chips">
       {options.map(([val, label]) => (
         <button
           key={val}
           type="button"
-          className={`ob-chip ${value === val ? "on" : ""}`}
-          onClick={() => onChange(val)}
+          className={`ob-chip ${list.includes(val) ? "on" : ""}`}
+          onClick={() => toggle(val)}
         >
           {label}
         </button>
@@ -141,6 +166,12 @@ export default function Onboarding({ uid, name, onDone }) {
               ]}
               value={data.activityLevel}
               onChange={(v) => set("activityLevel", v)}
+              hints={{
+                sedentario: "Pouco ou nenhum exercício, rotina mais parada no dia a dia.",
+                leve: "Exercício leve de 1 a 3 vezes por semana.",
+                moderado: "Exercício moderado de 3 a 5 vezes por semana.",
+                intenso: "Exercício intenso quase todos os dias.",
+              }}
             />
           </Field>
           <Field label="Horas de sono por noite">
@@ -154,12 +185,27 @@ export default function Onboarding({ uid, name, onDone }) {
               placeholder="ex: 7h, 9h, 12h, 16h, 20h"
             />
           </Field>
-          <Field label="Dias/horários que treina">
+          <Field label="Dias que treina">
+            <MultiChips
+              options={[
+                ["seg", "Seg"],
+                ["ter", "Ter"],
+                ["qua", "Qua"],
+                ["qui", "Qui"],
+                ["sex", "Sex"],
+                ["sab", "Sáb"],
+                ["dom", "Dom"],
+              ]}
+              value={data.trainDays}
+              onChange={(v) => set("trainDays", v)}
+            />
+          </Field>
+          <Field label="Horário habitual do treino — opcional">
             <input
               type="text"
-              value={data.trainDays}
-              onChange={(e) => set("trainDays", e.target.value)}
-              placeholder="ex: seg, qua, sex às 8h"
+              value={data.trainTime}
+              onChange={(e) => set("trainTime", e.target.value)}
+              placeholder="ex: 8h da manhã"
             />
           </Field>
         </>
