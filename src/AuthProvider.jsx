@@ -29,7 +29,13 @@ export function AuthProvider({ children }) {
       setUserDoc(null);
       return;
     }
-    return subscribeUserDoc(user.uid, setUserDoc);
+    return subscribeUserDoc(user.uid, (doc) => {
+      if (!doc) {
+        createUserDoc(user.uid, { name: user.displayName || "", email: user.email || "" });
+        return;
+      }
+      setUserDoc(doc);
+    });
   }, [user]);
 
   async function signUp(name, email, password) {
