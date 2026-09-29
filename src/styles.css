@@ -258,6 +258,19 @@ h3 {
   border-color: var(--accent);
   transform: translateY(-3px);
 }
+.profile-card.waiting {
+  cursor: default;
+}
+.profile-card.waiting:hover {
+  border-color: #ffffff12;
+  transform: none;
+}
+.profile-card.waiting .profile-photo-wrap { opacity: 0.5; }
+.profile-card.waiting > strong { opacity: 0.6; }
+.profile-card.waiting .profile-bottom {
+  color: var(--muted);
+  font-style: italic;
+}
 .profile-photo-wrap {
   position: relative;
   display: block;

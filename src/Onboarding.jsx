@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { ArrowRight, ArrowLeft, Check } from "lucide-react";
-import { saveOnboarding, createCoupleInvite, joinCoupleByCode } from "./cloud";
+import { saveOnboarding, createCoupleInvite, joinCoupleByCode, markCoupleMemberOnboarded } from "./cloud";
 
 const empty = {
   sex: "",
@@ -92,6 +92,7 @@ export default function Onboarding({ uid, name, onDone }) {
   const [inviteCode, setInviteCode] = useState("");
   const [joinCode, setJoinCode] = useState("");
   const [coupleNotice, setCoupleNotice] = useState("");
+  const [coupleId, setCoupleId] = useState(null);
 
   function set(key, val) {
     setData((d) => ({ ...d, [key]: val }));
@@ -388,8 +389,9 @@ export default function Onboarding({ uid, name, onDone }) {
                   onClick={async () => {
                     setError("");
                     try {
-                      const { code } = await createCoupleInvite(uid);
+                      const { code, coupleId: newId } = await createCoupleInvite(uid, name);
                       setInviteCode(code);
+                      setCoupleId(newId);
                     } catch (err) {
                       setError(err.message);
                     }
@@ -411,7 +413,8 @@ export default function Onboarding({ uid, name, onDone }) {
                 onClick={async () => {
                   setError("");
                   try {
-                    await joinCoupleByCode(uid, joinCode);
+                    const { coupleId: joinedId } = await joinCoupleByCode(uid, name, joinCode);
+                    setCoupleId(joinedId);
                     setCoupleNotice("Vínculo feito!");
                   } catch (err) {
                     setError(err.message);
@@ -435,6 +438,7 @@ export default function Onboarding({ uid, name, onDone }) {
     setError("");
     try {
       await saveOnboarding(uid, data);
+      if (coupleId) await markCoupleMemberOnboarded(coupleId, uid);
       onDone();
     } catch (err) {
       setError(err.message);

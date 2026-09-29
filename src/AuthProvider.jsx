@@ -5,6 +5,7 @@ import {
   signOut,
   updateProfile,
   onAuthStateChanged,
+  sendEmailVerification,
 } from "firebase/auth";
 import { auth, firebaseReady } from "./firebase";
 import { createUserDoc, subscribeUserDoc } from "./cloud";
@@ -15,11 +16,13 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [userDoc, setUserDoc] = useState(null);
   const [loading, setLoading] = useState(firebaseReady);
+  const [emailVerified, setEmailVerified] = useState(false);
 
   useEffect(() => {
     if (!firebaseReady) return;
     return onAuthStateChanged(auth, (u) => {
       setUser(u);
+      setEmailVerified(u ? u.emailVerified : false);
       setLoading(false);
     });
   }, []);
@@ -42,6 +45,7 @@ export function AuthProvider({ children }) {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     await updateProfile(cred.user, { displayName: name });
     await createUserDoc(cred.user.uid, { name, email });
+    await sendEmailVerification(cred.user);
     return cred.user;
   }
 
@@ -54,8 +58,32 @@ export function AuthProvider({ children }) {
     await signOut(auth);
   }
 
+  async function resendVerification() {
+    if (auth.currentUser) await sendEmailVerification(auth.currentUser);
+  }
+
+  async function refreshEmailVerified() {
+    if (!auth.currentUser) return false;
+    await auth.currentUser.reload();
+    const verified = auth.currentUser.emailVerified;
+    setEmailVerified(verified);
+    return verified;
+  }
+
   return (
-    <AuthContext.Provider value={{ user, userDoc, loading, signUp, signIn, signOutUser }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        userDoc,
+        loading,
+        emailVerified,
+        signUp,
+        signIn,
+        signOutUser,
+        resendVerification,
+        refreshEmailVerified,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

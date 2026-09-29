@@ -50,10 +50,15 @@ import { firebaseReady } from "./firebase";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "./firebase";
 import Onboarding from "./Onboarding";
-import { uploadProfilePhoto, subscribeProfilePhotos } from "./cloud";
+import { uploadProfilePhoto, subscribeProfilePhotos, subscribeCouple } from "./cloud";
 import "./styles.css";
 const iconProps = { size: 20, strokeWidth: 1.65 };
 const fmt = (d, options) => parseDate(d).toLocaleDateString("pt-BR", options);
+function personKeyForName(name) {
+  const n = (name || "").toLowerCase();
+  const found = Object.entries(profiles).find(([, p]) => n.includes(p.name.toLowerCase()));
+  return found ? found[0] : Object.keys(profiles)[0];
+}
 function Brand({ compact = false }) {
   return (
     <span className={`brand${compact ? " brand-symbol" : ""}`}>
@@ -297,6 +302,7 @@ function LoginPage({ onBack }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -306,6 +312,10 @@ function LoginPage({ onBack }) {
     setNotice("");
     if (!firebaseReady) {
       setError("O cadastro na nuvem ainda está sendo configurado. Volte em instantes.");
+      return;
+    }
+    if (signup && password !== confirmPassword) {
+      setError("As senhas não são iguais.");
       return;
     }
     setBusy(true);
@@ -432,6 +442,24 @@ function LoginPage({ onBack }) {
                 </button>
               </div>
             </label>
+            {signup && (
+              <label className="login-field">
+                <span>Confirmar senha</span>
+                <div className="login-input">
+                  <Lock size={17} />
+                  <input
+                    type={showPw ? "text" : "password"}
+                    name="confirmPassword"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Repita a senha"
+                    autoComplete="new-password"
+                    minLength={6}
+                    required
+                  />
+                </div>
+              </label>
+            )}
             {!signup && (
               <div className="login-row">
                 <span />
@@ -469,6 +497,71 @@ function LoginPage({ onBack }) {
     </div>
   );
 }
+function VerifyEmail({ email }) {
+  const { resendVerification, refreshEmailVerified, signOutUser } = useAuth();
+  const [status, setStatus] = useState("");
+  const [checking, setChecking] = useState(false);
+  const [resending, setResending] = useState(false);
+  async function handleResend() {
+    setResending(true);
+    setStatus("");
+    try {
+      await resendVerification();
+      setStatus("Reenviado! Confere sua caixa de entrada (e o spam).");
+    } catch {
+      setStatus("Não deu pra reenviar agora. Tenta de novo em instantes.");
+    } finally {
+      setResending(false);
+    }
+  }
+  async function handleCheck() {
+    setChecking(true);
+    setStatus("");
+    const verified = await refreshEmailVerified();
+    if (!verified) setStatus("Ainda não encontramos a confirmação. Já clicou no link do e-mail?");
+    setChecking(false);
+  }
+  return (
+    <div className="land login">
+      <div className="login-panel">
+        <div className="login-panel-inner">
+          <div className="login-brand">
+            <Brand />
+          </div>
+          <h2 className="land-d login-title">
+            Confirme
+            <br />
+            <span className="l2">seu e-mail.</span>
+          </h2>
+          <p className="login-sub">
+            Mandamos um link de confirmação para <strong>{email}</strong>. Clica nele e volta
+            aqui.
+          </p>
+          <button className="land-btn acid login-submit" type="button" onClick={handleCheck} disabled={checking}>
+            {checking ? "Verificando..." : "Já confirmei"}
+            <i>{landArrow}</i>
+          </button>
+          {status && <p className="login-notice">{status}</p>}
+          <div className="login-divider">
+            <span>ou</span>
+          </div>
+          <button className="land-btn login-create" type="button" onClick={handleResend} disabled={resending}>
+            {resending ? "Enviando..." : "Reenviar e-mail"}
+            <i>{landArrow}</i>
+          </button>
+          <button
+            type="button"
+            className="login-link"
+            style={{ marginTop: 22 }}
+            onClick={() => signOutUser()}
+          >
+            Usar outra conta
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 function App() {
   const [person, setPerson] = useState(null),
     [view, setView] = useState("today"),
@@ -481,14 +574,23 @@ function App() {
     [full, setFull] = useState(false),
     [stage, setStage] = useState("landing"),
     [photos, setPhotos] = useState({}),
-    [uploadingPhoto, setUploadingPhoto] = useState(false);
+    [uploadingPhoto, setUploadingPhoto] = useState(false),
+    [couple, setCouple] = useState(null);
   const toastTimer = useRef();
   const photoInputRef = useRef();
   const pendingPhotoPerson = useRef(null);
+  const { user, userDoc, loading: authLoading, emailVerified } = useAuth();
   useEffect(() => {
     if (!firebaseReady) return;
     return subscribeProfilePhotos(setPhotos);
   }, []);
+  useEffect(() => {
+    if (!userDoc?.coupleId) {
+      setCouple(null);
+      return;
+    }
+    return subscribeCouple(userDoc.coupleId, setCouple);
+  }, [userDoc?.coupleId]);
   useEffect(() => {
     const timer = setInterval(() => setToday(dateKey()), 30000);
     const sync = (e) => {
@@ -1159,11 +1261,11 @@ function App() {
     );
   }
   const verse = verseOfDay();
-  const { user, userDoc, loading: authLoading } = useAuth();
   if (authLoading) return null;
   if (!user && stage === "landing")
     return <Landing onEnter={() => setStage("login")} />;
   if (!user && stage !== "landing") return <LoginPage onBack={() => setStage("landing")} />;
+  if (user && !emailVerified) return <VerifyEmail email={user.email} />;
   if (user && !userDoc) return null;
   if (user && userDoc && !userDoc.onboardingComplete)
     return <Onboarding uid={user.uid} name={userDoc.name} onDone={() => {}} />;
@@ -1196,45 +1298,72 @@ function App() {
             onChange={handlePhotoFile}
           />
           <div className="profile-choices">
-            {Object.entries(profiles).map(([p, profile]) => (
-              <button
-                key={p}
-                className={`profile-card theme-${profile.color}`}
-                onClick={() => enter(p)}
-              >
-                <span
-                  className="profile-photo-wrap"
-                  role="button"
-                  tabIndex={0}
-                  aria-label={`Trocar foto de ${profile.name}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    openPhotoPicker(p);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      openPhotoPicker(p);
-                    }
-                  }}
-                >
-                  {photos[p] ? (
-                    <img className="profile-photo" src={photos[p]} alt={profile.name} />
-                  ) : (
-                    <span className="avatar profile-photo-fallback">{profile.initial}</span>
-                  )}
-                  <span className="profile-photo-edit">
-                    <Camera size={14} />
-                  </span>
-                </span>
-                <span className="profile-greeting">MEU MOMENTO DE CUIDADO</span>
-                <strong>{profile.name}</strong>
-                <span className="profile-bottom">
-                  Entrar na minha rotina <ArrowRight size={19} />
-                </span>
-              </button>
-            ))}
+            {(() => {
+              const myKey = personKeyForName(userDoc?.name);
+              const otherKey = Object.keys(profiles).find((k) => k !== myKey);
+              const otherUid = couple?.memberUids?.find((id) => id !== user.uid);
+              const otherMember = otherUid ? couple?.members?.[otherUid] : null;
+              const otherReady = Boolean(otherMember?.onboardingComplete);
+              const cards = [
+                { key: myKey, name: userDoc?.name || profiles[myKey].name, ready: true },
+                {
+                  key: otherKey,
+                  name: otherMember?.name || profiles[otherKey].name,
+                  ready: otherReady,
+                  waitLabel: userDoc?.coupleId ? `Aguardando ${otherMember?.name || profiles[otherKey].name}` : "Aguardando vínculo do casal",
+                },
+              ];
+              return cards.map(({ key: p, name, ready, waitLabel }) => {
+                const profile = profiles[p];
+                return (
+                  <button
+                    key={p}
+                    className={`profile-card theme-${profile.color} ${ready ? "" : "waiting"}`}
+                    onClick={() => ready && enter(p)}
+                  >
+                    <span
+                      className="profile-photo-wrap"
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Trocar foto de ${name}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openPhotoPicker(p);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          openPhotoPicker(p);
+                        }
+                      }}
+                    >
+                      {photos[p] ? (
+                        <img className="profile-photo" src={photos[p]} alt={name} />
+                      ) : (
+                        <span className="avatar profile-photo-fallback">{profile.initial}</span>
+                      )}
+                      <span className="profile-photo-edit">
+                        <Camera size={14} />
+                      </span>
+                    </span>
+                    <span className="profile-greeting">
+                      {ready ? "MEU MOMENTO DE CUIDADO" : "AINDA NÃO COMEÇOU"}
+                    </span>
+                    <strong>{name}</strong>
+                    <span className="profile-bottom">
+                      {ready ? (
+                        <>
+                          Entrar na minha rotina <ArrowRight size={19} />
+                        </>
+                      ) : (
+                        waitLabel
+                      )}
+                    </span>
+                  </button>
+                );
+              });
+            })()}
           </div>
           <button className="house-entry" onClick={() => enter("house")}>
             <House size={20} />

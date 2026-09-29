@@ -52,12 +52,13 @@ function randomCode() {
   return code;
 }
 
-export async function createCoupleInvite(uid) {
+export async function createCoupleInvite(uid, name) {
   const code = randomCode();
   const ref = doc(collection(db, "couples"));
   await setDoc(ref, {
     ownerUid: uid,
     memberUids: [uid],
+    members: { [uid]: { name, onboardingComplete: false } },
     inviteCode: code,
     createdAt: serverTimestamp(),
   });
@@ -65,7 +66,7 @@ export async function createCoupleInvite(uid) {
   return { coupleId: ref.id, code };
 }
 
-export async function joinCoupleByCode(uid, code) {
+export async function joinCoupleByCode(uid, name, code) {
   const q = query(collection(db, "couples"), where("inviteCode", "==", code.toUpperCase().trim()));
   const results = await getDocs(q);
   if (results.empty) throw new Error("Código não encontrado.");
@@ -76,9 +77,22 @@ export async function joinCoupleByCode(uid, code) {
   if (coupleDoc.data().memberUids.length >= 2) {
     throw new Error("Esse código já tem dois participantes.");
   }
-  await updateDoc(coupleDoc.ref, { memberUids: arrayUnion(uid) });
+  await updateDoc(coupleDoc.ref, {
+    memberUids: arrayUnion(uid),
+    [`members.${uid}`]: { name, onboardingComplete: false },
+  });
   await updateDoc(userRef(uid), { coupleId: coupleDoc.id });
   return { coupleId: coupleDoc.id };
+}
+
+export async function markCoupleMemberOnboarded(coupleId, uid) {
+  await updateDoc(doc(db, "couples", coupleId), { [`members.${uid}.onboardingComplete`]: true });
+}
+
+export function subscribeCouple(coupleId, callback) {
+  return onSnapshot(doc(db, "couples", coupleId), (snap) => {
+    callback(snap.exists() ? snap.data() : null);
+  });
 }
 
 function compressImage(file, maxSize = 360, quality = 0.75) {

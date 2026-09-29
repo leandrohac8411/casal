@@ -21,9 +21,10 @@ Produção: `npm run build`. Conferência local da produção: `npm run preview`
 - Histórico com cópia do planejamento de cada dia registrado; trocar plano não modifica outras datas.
 - Persistência em localStorage e atualização entre abas do mesmo navegador. Sem sincronização entre dispositivos.
 - Layout responsivo, navegação por teclado, modal nativo e preferência por movimento reduzido.
-- Cadastro e login reais com Firebase Authentication (e-mail/senha), recuperação de senha por e-mail.
+- Cadastro e login reais com Firebase Authentication (e-mail/senha, com confirmação de senha no cadastro), recuperação de senha por e-mail.
+- Verificação de e-mail obrigatória: depois de criar a conta, só continua após confirmar o link recebido (template padrão do Firebase por enquanto).
 - Onboarding em etapas após o cadastro (dados pessoais, objetivo, rotina, alimentação, treino), salvo em Firestore.
-- Vínculo do casal por código de convite (gera código, o parceiro entra com ele para vincular as contas).
+- Vínculo do casal por código de convite (gera código, o parceiro entra com ele para vincular as contas). Enquanto o parceiro não completa o próprio onboarding, a tela de perfis mostra "aguardando" no lugar do card dele.
 
 ## Limites desta etapa
 
@@ -31,7 +32,7 @@ Sem integração NEXO. O restante do app (refeições, água, treinos, calendár
 
 ## Firebase
 
-Projeto configurado via variáveis de ambiente (ver `.env.example`): `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_STORAGE_BUCKET`, `VITE_FIREBASE_MESSAGING_SENDER_ID`, `VITE_FIREBASE_APP_ID`. Sem essas variáveis, o cadastro mostra um aviso e não quebra o resto do app. Habilitar no console do Firebase: Authentication (e-mail/senha) e Firestore Database. Coleções: `users/{uid}` (perfil, onboarding, `coupleId`), `couples/{id}` (`memberUids`, `inviteCode`) e `profilePhotos/{personKey}` (foto de cada perfil).
+Projeto configurado via variáveis de ambiente (ver `.env.example`): `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_STORAGE_BUCKET`, `VITE_FIREBASE_MESSAGING_SENDER_ID`, `VITE_FIREBASE_APP_ID`. Sem essas variáveis, o cadastro mostra um aviso e não quebra o resto do app. Habilitar no console do Firebase: Authentication (e-mail/senha) e Firestore Database. Coleções: `users/{uid}` (perfil, onboarding, `coupleId`), `couples/{id}` (`memberUids`, `inviteCode`, `members.{uid}.name/onboardingComplete` — visível aos dois, usado pra mostrar "aguardando") e `profilePhotos/{personKey}` (foto de cada perfil).
 
 Fotos de perfil não usam o Firebase Storage (exige plano pago). São comprimidas no navegador e salvas como base64 direto no documento do Firestore — dentro do limite de 1 MB por documento.
 
