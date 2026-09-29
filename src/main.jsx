@@ -646,15 +646,16 @@ function App() {
       setUploadingPhoto(false);
     }
   }
+  const prefsFor = (p) => (p === myKey ? userDoc : null);
   const dayFor = (p, key = selected) =>
-    records[`${p}:${key}`] || createDay(p, key);
+    records[`${p}:${key}`] || createDay(p, key, prefsFor(p));
   function update(p, key, fn) {
     if (key !== today) {
       notify("Só é possível alterar as marcações de hoje.");
       return;
     }
     const fresh = loadRecords();
-    const day = structuredClone(fresh[`${p}:${key}`] || createDay(p, key));
+    const day = structuredClone(fresh[`${p}:${key}`] || createDay(p, key, prefsFor(p)));
     fn(day);
     day.person = p;
     const next = { ...fresh, [`${p}:${key}`]: day };

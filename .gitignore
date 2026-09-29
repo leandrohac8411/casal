@@ -6,3 +6,4 @@ dist/
 .qa/
 .npm-cache/
 .claude/
+.taco-pipeline/

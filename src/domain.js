@@ -1,3 +1,5 @@
+import { foods } from "./foods.js";
+
 export const profiles = {
   stephany: {
     name: "Stephany",
@@ -15,6 +17,78 @@ export const profiles = {
   },
 };
 const meal = (id, time, name, items) => ({ id, time, name, items });
+
+function mulberry32(seed) {
+  return function () {
+    seed |= 0;
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function hashStr(s) {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
+  return h;
+}
+const slotLabels = {
+  pre: "Pré-treino",
+  cafe: "Café da manhã",
+  almoco: "Almoço",
+  lanche: "Lanche da tarde",
+  jantar: "Jantar",
+};
+const slotTimes = { pre: "07:00", cafe: "09:10", almoco: "12:00", lanche: "16:30", jantar: "20:30" };
+const slotOrder = ["pre", "cafe", "almoco", "lanche", "jantar"];
+const slotCombos = {
+  pre: ["fruit"],
+  cafe: ["carb", "protein", "dairy"],
+  almoco: ["carb", "legume", "protein", "veg"],
+  lanche: ["dairy", "fruit"],
+  jantar: ["carb", "protein", "veg"],
+};
+const portionByTag = {
+  protein: 120,
+  carb: 100,
+  legume: 80,
+  veg: 60,
+  fruit: 100,
+  dairy: 150,
+  fat: 5,
+  sweet: 20,
+  nut: 20,
+};
+function isAllowed(food, restricted) {
+  return !restricted.some((r) => r && food.name.toLowerCase().includes(r));
+}
+function pickFood(rand, tag, restricted) {
+  const pool = foods.filter((f) => f.tag === tag && isAllowed(f, restricted));
+  if (!pool.length) return null;
+  return pool[Math.floor(rand() * pool.length)];
+}
+function buildSlotItems(slot, rand, restricted, eatsVeggies) {
+  const tags = slotCombos[slot] || ["carb", "protein"];
+  const parts = [];
+  for (const tag of tags) {
+    if (tag === "veg" && eatsVeggies === "nao") continue;
+    const food = pickFood(rand, tag, restricted);
+    if (food) parts.push(`${portionByTag[tag]} g ${food.name.toLowerCase()}`);
+  }
+  return parts.length ? parts.join(" · ") : "Sem opções com as restrições informadas.";
+}
+export function generateMeals(prefs, seedKey) {
+  const rand = mulberry32(hashStr(seedKey));
+  const restricted = `${prefs.avoidFoods || ""},${prefs.allergies || ""}`
+    .split(",")
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean);
+  const chosen = Array.isArray(prefs.mealTimes) && prefs.mealTimes.length ? prefs.mealTimes : slotOrder;
+  const ordered = slotOrder.filter((id) => chosen.includes(id));
+  return ordered.map((id) =>
+    meal(id, slotTimes[id], slotLabels[id], buildSlotItems(id, rand, restricted, prefs.eatsVeggies)),
+  );
+}
 export const plans = [
   {
     id: "frango",
@@ -196,13 +270,14 @@ export function addDays(key, n) {
   d.setDate(d.getDate() + n);
   return dateKey(d);
 }
-export function createDay(person, key) {
+export function createDay(person, key, prefs) {
   const weekday = parseDate(key).getDay();
   const plan = plans[[0, 0, 3, 1, 4, 2, 0][weekday]];
+  const personalized = prefs && prefs.onboardingComplete ? generateMeals(prefs, `${person}:${key}`) : null;
   return {
     date: key,
-    planId: plan.id,
-    meals: structuredClone(plan.meals),
+    planId: personalized ? "personalizado" : plan.id,
+    meals: personalized || structuredClone(plan.meals),
     waterGoal: profiles[person].water,
     water: 0,
     done: {},

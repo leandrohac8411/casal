@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createDay, status, metrics, plans } from "../src/domain.js";
+import { createDay, status, metrics, plans, generateMeals } from "../src/domain.js";
 test("um dia só fica completo com refeições, água e todos os treinos", () => {
   const d = createDay("stephany", "2026-09-22");
   d.meals.forEach((m) => (d.done[m.id] = true));
@@ -45,4 +45,36 @@ test("hoje em andamento não quebra sequência; futuro não entra nas métricas"
     best: 2,
     current: 2,
   });
+});
+test("sem onboarding completo, o dia usa os planos fixos de sempre", () => {
+  const d = createDay("stephany", "2026-09-22", { onboardingComplete: false });
+  assert.notEqual(d.planId, "personalizado");
+});
+test("com onboarding completo, o dia é gerado a partir da base de alimentos", () => {
+  const d = createDay("stephany", "2026-09-22", { onboardingComplete: true });
+  assert.equal(d.planId, "personalizado");
+  assert.equal(d.meals.length, 5);
+});
+test("a mesma pessoa e data sempre gera as mesmas refeições", () => {
+  const prefs = { onboardingComplete: true };
+  const a = generateMeals(prefs, "leandro:2026-09-22");
+  const b = generateMeals(prefs, "leandro:2026-09-22");
+  assert.deepEqual(a, b);
+});
+test("respeita os horários de refeição escolhidos no onboarding", () => {
+  const meals = generateMeals(
+    { onboardingComplete: true, mealTimes: ["cafe", "jantar"] },
+    "leandro:2026-09-22",
+  );
+  assert.deepEqual(meals.map((m) => m.id), ["cafe", "jantar"]);
+});
+test("alimentos evitados não aparecem nas refeições geradas", () => {
+  const meals = generateMeals(
+    { onboardingComplete: true, avoidFoods: "frango, atum, presunto" },
+    "leandro:2026-09-22",
+  );
+  const text = meals.map((m) => m.items.toLowerCase()).join(" ");
+  assert.equal(text.includes("frango"), false);
+  assert.equal(text.includes("atum"), false);
+  assert.equal(text.includes("presunto"), false);
 });
