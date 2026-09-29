@@ -329,6 +329,13 @@ h3 {
   padding-top: 18px;
   border-top: 1px solid #ffffff0c;
 }
+.profile-bottom.ob-code-inline {
+  justify-content: center;
+  font-family: Manrope, sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
 .house-entry {
   display: flex;
   align-items: center;

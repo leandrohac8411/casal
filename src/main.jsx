@@ -50,7 +50,7 @@ import { firebaseReady } from "./firebase";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "./firebase";
 import Onboarding from "./Onboarding";
-import { uploadProfilePhoto, subscribeProfilePhotos, subscribeCouple } from "./cloud";
+import { uploadProfilePhoto, subscribeProfilePhotos, subscribeCouple, createCoupleInvite } from "./cloud";
 import "./styles.css";
 const iconProps = { size: 20, strokeWidth: 1.65 };
 const fmt = (d, options) => parseDate(d).toLocaleDateString("pt-BR", options);
@@ -580,11 +580,22 @@ function App() {
     [stage, setStage] = useState("landing"),
     [photos, setPhotos] = useState({}),
     [uploadingPhoto, setUploadingPhoto] = useState(false),
-    [couple, setCouple] = useState(null);
+    [couple, setCouple] = useState(null),
+    [generatingInvite, setGeneratingInvite] = useState(false);
   const toastTimer = useRef();
   const photoInputRef = useRef();
   const pendingPhotoPerson = useRef(null);
   const { user, userDoc, loading: authLoading } = useAuth();
+  async function handleGenerateInvite() {
+    setGeneratingInvite(true);
+    try {
+      await createCoupleInvite(user.uid, userDoc.name);
+    } catch {
+      notify("Não foi possível gerar o convite. Tenta de novo.");
+    } finally {
+      setGeneratingInvite(false);
+    }
+  }
   useEffect(() => {
     if (!firebaseReady) return;
     return subscribeProfilePhotos(setPhotos);
@@ -1305,68 +1316,116 @@ function App() {
             {(() => {
               const myKey = personKeyForName(userDoc?.name);
               const otherKey = Object.keys(profiles).find((k) => k !== myKey);
+              const myName = userDoc?.name || profiles[myKey].name;
               const otherUid = couple?.memberUids?.find((id) => id !== user.uid);
               const otherMember = otherUid ? couple?.members?.[otherUid] : null;
               const otherReady = Boolean(otherMember?.onboardingComplete);
-              const cards = [
-                { key: myKey, name: userDoc?.name || profiles[myKey].name, ready: true },
-                {
-                  key: otherKey,
-                  name: otherMember?.name || profiles[otherKey].name,
-                  ready: otherReady,
-                  waitLabel: userDoc?.coupleId ? `Aguardando ${otherMember?.name || profiles[otherKey].name}` : "Aguardando vínculo do casal",
-                },
-              ];
-              return cards.map(({ key: p, name, ready, waitLabel }) => {
-                const profile = profiles[p];
+              const myProfile = profiles[myKey];
+              const otherProfile = profiles[otherKey];
+
+              function PhotoWrap({ p, name }) {
                 return (
-                  <button
-                    key={p}
-                    className={`profile-card theme-${profile.color} ${ready ? "" : "waiting"}`}
-                    onClick={() => ready && enter(p)}
-                  >
-                    <span
-                      className="profile-photo-wrap"
-                      role="button"
-                      tabIndex={0}
-                      aria-label={`Trocar foto de ${name}`}
-                      onClick={(e) => {
+                  <span
+                    className="profile-photo-wrap"
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Trocar foto de ${name}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openPhotoPicker(p);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
                         e.stopPropagation();
                         openPhotoPicker(p);
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          openPhotoPicker(p);
-                        }
-                      }}
-                    >
-                      {photos[p] ? (
-                        <img className="profile-photo" src={photos[p]} alt={name} />
-                      ) : (
-                        <span className="avatar profile-photo-fallback">{profile.initial}</span>
-                      )}
-                      <span className="profile-photo-edit">
-                        <Camera size={14} />
-                      </span>
+                      }
+                    }}
+                  >
+                    {photos[p] ? (
+                      <img className="profile-photo" src={photos[p]} alt={name} />
+                    ) : (
+                      <span className="avatar profile-photo-fallback">{profiles[p].initial}</span>
+                    )}
+                    <span className="profile-photo-edit">
+                      <Camera size={14} />
                     </span>
-                    <span className="profile-greeting">
-                      {ready ? "MEU MOMENTO DE CUIDADO" : "AINDA NÃO COMEÇOU"}
-                    </span>
-                    <strong>{name}</strong>
+                  </span>
+                );
+              }
+
+              return (
+                <>
+                  <button
+                    className={`profile-card theme-${myProfile.color}`}
+                    onClick={() => enter(myKey)}
+                  >
+                    <PhotoWrap p={myKey} name={myName} />
+                    <span className="profile-greeting">MEU MOMENTO DE CUIDADO</span>
+                    <strong>{myName}</strong>
                     <span className="profile-bottom">
-                      {ready ? (
-                        <>
-                          Entrar na minha rotina <ArrowRight size={19} />
-                        </>
-                      ) : (
-                        waitLabel
-                      )}
+                      Entrar na minha rotina <ArrowRight size={19} />
                     </span>
                   </button>
-                );
-              });
+
+                  {otherMember ? (
+                    <button
+                      className={`profile-card theme-${otherProfile.color} ${otherReady ? "" : "waiting"}`}
+                      onClick={() => otherReady && enter(otherKey)}
+                    >
+                      <PhotoWrap p={otherKey} name={otherMember.name} />
+                      <span className="profile-greeting">
+                        {otherReady ? "MEU MOMENTO DE CUIDADO" : "AINDA NÃO COMEÇOU"}
+                      </span>
+                      <strong>{otherMember.name}</strong>
+                      <span className="profile-bottom">
+                        {otherReady ? (
+                          <>
+                            Entrar na rotina de {otherMember.name.split(" ")[0]}{" "}
+                            <ArrowRight size={19} />
+                          </>
+                        ) : (
+                          `Aguardando ${otherMember.name}`
+                        )}
+                      </span>
+                    </button>
+                  ) : couple?.inviteCode ? (
+                    <div className="profile-card waiting">
+                      <span className="profile-photo-wrap">
+                        <span className="avatar profile-photo-fallback">
+                          <Link2 size={28} />
+                        </span>
+                      </span>
+                      <span className="profile-greeting">CONVITE ENVIADO</span>
+                      <strong>Compartilhe o código</strong>
+                      <span className="profile-bottom ob-code-inline">{couple.inviteCode}</span>
+                    </div>
+                  ) : (
+                    <button
+                      className="profile-card waiting"
+                      onClick={handleGenerateInvite}
+                      disabled={generatingInvite}
+                    >
+                      <span className="profile-photo-wrap">
+                        <span className="avatar profile-photo-fallback">
+                          <Link2 size={28} />
+                        </span>
+                      </span>
+                      <span className="profile-greeting">AINDA SEM VÍNCULO</span>
+                      <strong>Convide seu par</strong>
+                      <span className="profile-bottom">
+                        {generatingInvite ? (
+                          "Gerando..."
+                        ) : (
+                          <>
+                            Gerar código <ArrowRight size={19} />
+                          </>
+                        )}
+                      </span>
+                    </button>
+                  )}
+                </>
+              );
             })()}
           </div>
           <button className="house-entry" onClick={() => enter("house")}>
