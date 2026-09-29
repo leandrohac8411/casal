@@ -1631,7 +1631,7 @@ function App() {
               )}
             </span>
             <span>
-              {person === "house" ? "Nossa casa" : displayName(active)}
+              {person === "house" ? "Nossa casa" : displayShort(active)}
               <small>Trocar perfil</small>
             </span>
             <LogOut size={17} />
