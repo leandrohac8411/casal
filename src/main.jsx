@@ -499,17 +499,22 @@ function LoginPage({ onBack }) {
 }
 function VerifyEmail({ email }) {
   const { resendVerification, refreshEmailVerified, signOutUser } = useAuth();
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState("Enviando o e-mail de confirmação...");
   const [checking, setChecking] = useState(false);
   const [resending, setResending] = useState(false);
+  useEffect(() => {
+    resendVerification()
+      .then(() => setStatus(""))
+      .catch(() => setStatus("Não conseguimos enviar o e-mail agora. Tenta \"Reenviar\" abaixo."));
+  }, []);
   async function handleResend() {
     setResending(true);
     setStatus("");
     try {
       await resendVerification();
       setStatus("Reenviado! Confere sua caixa de entrada (e o spam).");
-    } catch {
-      setStatus("Não deu pra reenviar agora. Tenta de novo em instantes.");
+    } catch (err) {
+      setStatus("Não deu pra reenviar: " + (err?.code || err?.message || "erro desconhecido"));
     } finally {
       setResending(false);
     }
@@ -579,7 +584,7 @@ function App() {
   const toastTimer = useRef();
   const photoInputRef = useRef();
   const pendingPhotoPerson = useRef(null);
-  const { user, userDoc, loading: authLoading, emailVerified } = useAuth();
+  const { user, userDoc, loading: authLoading } = useAuth();
   useEffect(() => {
     if (!firebaseReady) return;
     return subscribeProfilePhotos(setPhotos);
@@ -1265,7 +1270,6 @@ function App() {
   if (!user && stage === "landing")
     return <Landing onEnter={() => setStage("login")} />;
   if (!user && stage !== "landing") return <LoginPage onBack={() => setStage("landing")} />;
-  if (user && !emailVerified) return <VerifyEmail email={user.email} />;
   if (user && !userDoc) return null;
   if (user && userDoc && !userDoc.onboardingComplete)
     return <Onboarding uid={user.uid} name={userDoc.name} onDone={() => {}} />;

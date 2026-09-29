@@ -45,7 +45,6 @@ export function AuthProvider({ children }) {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     await updateProfile(cred.user, { displayName: name });
     await createUserDoc(cred.user.uid, { name, email });
-    await sendEmailVerification(cred.user);
     return cred.user;
   }
 
