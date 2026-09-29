@@ -1159,7 +1159,6 @@ function App() {
   }
   function Calendar() {
     const p = active,
-      m = metrics(records, p, month, today),
       start = new Date(month + "-01T12:00:00"),
       offset = (start.getDay() + 6) % 7,
       count = new Date(start.getFullYear(), start.getMonth() + 1, 0).getDate();
@@ -1173,32 +1172,6 @@ function App() {
           >
             <X size={22} />
           </button>
-        )}
-        {!full && (
-          <div className="page-heading">
-            <div>
-              <div className="date-label">O CALENDÁRIO DE {profiles[p].name.toUpperCase()}</div>
-              <h1>
-                Seu mês, <span className="accent">um cuidado por vez.</span>
-              </h1>
-              <p>Escolha um dia para abrir suas refeições, água e treino.</p>
-            </div>
-          </div>
-        )}
-        {!full && (
-          <div className="metrics">
-            {[
-              [m.complete, "dias completos"],
-              [`${m.percent}%`, "dos dias registrados"],
-              [m.current, "sequência atual"],
-              [m.best, "melhor sequência"],
-            ].map(([n, label]) => (
-              <div key={label}>
-                <strong>{n}</strong>
-                <span>{label}</span>
-              </div>
-            ))}
-          </div>
         )}
         <section className="panel calendar-panel routine-calendar">
           <div className="section-heading">
