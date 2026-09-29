@@ -627,6 +627,20 @@ function App() {
     clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(() => setToast(""), 3500);
   };
+  async function enterFullscreen() {
+    try {
+      if (!document.fullscreenElement) await document.documentElement.requestFullscreen();
+    } catch {
+      notify("A tela cheia não está disponível neste navegador.");
+    }
+  }
+  async function exitFullscreenMode() {
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+    } catch {
+      /* ignore */
+    }
+  }
   function openPhotoPicker(p) {
     if (!firebaseReady) {
       notify("O upload de foto ainda está sendo configurado.");
@@ -1015,28 +1029,41 @@ function App() {
       count = new Date(start.getFullYear(), start.getMonth() + 1, 0).getDate();
     return (
       <>
-        <div className="page-heading">
-          <div>
-            <div className="date-label">O CALENDÁRIO DE {profiles[p].name.toUpperCase()}</div>
-            <h1>
-              Seu mês, <span className="accent">um cuidado por vez.</span>
-            </h1>
-            <p>Escolha um dia para abrir suas refeições, água e treino.</p>
-          </div>
-        </div>
-        <div className="metrics">
-          {[
-            [m.complete, "dias completos"],
-            [`${m.percent}%`, "dos dias registrados"],
-            [m.current, "sequência atual"],
-            [m.best, "melhor sequência"],
-          ].map(([n, label]) => (
-            <div key={label}>
-              <strong>{n}</strong>
-              <span>{label}</span>
+        {full && (
+          <button
+            className="calendar-fullscreen-exit"
+            aria-label="Sair da tela cheia"
+            onClick={exitFullscreenMode}
+          >
+            <X size={22} />
+          </button>
+        )}
+        {!full && (
+          <div className="page-heading">
+            <div>
+              <div className="date-label">O CALENDÁRIO DE {profiles[p].name.toUpperCase()}</div>
+              <h1>
+                Seu mês, <span className="accent">um cuidado por vez.</span>
+              </h1>
+              <p>Escolha um dia para abrir suas refeições, água e treino.</p>
             </div>
-          ))}
-        </div>
+          </div>
+        )}
+        {!full && (
+          <div className="metrics">
+            {[
+              [m.complete, "dias completos"],
+              [`${m.percent}%`, "dos dias registrados"],
+              [m.current, "sequência atual"],
+              [m.best, "melhor sequência"],
+            ].map(([n, label]) => (
+              <div key={label}>
+                <strong>{n}</strong>
+                <span>{label}</span>
+              </div>
+            ))}
+          </div>
+        )}
         <section className="panel calendar-panel routine-calendar">
           <div className="section-heading">
             <button
@@ -1116,12 +1143,16 @@ function App() {
             <span><Leaf size={14}/>Descanso</span>
           </div>
         </section>
-        <div className="calendar-status-key"><span><i className="key-done"/>Concluído</span><span><i className="key-partial"/>Em andamento</span><span><i/>Ainda sem marcação</span></div>
-        <p className="calendar-explainer">
-          Seu dia de hoje pode continuar em andamento sem quebrar a sequência.
-          Dias futuros não entram na conta. O percentual considera apenas os
-          dias com registros neste mês.
-        </p>
+        {!full && (
+          <>
+            <div className="calendar-status-key"><span><i className="key-done"/>Concluído</span><span><i className="key-partial"/>Em andamento</span><span><i/>Ainda sem marcação</span></div>
+            <p className="calendar-explainer">
+              Seu dia de hoje pode continuar em andamento sem quebrar a sequência.
+              Dias futuros não entram na conta. O percentual considera apenas os
+              dias com registros neste mês.
+            </p>
+          </>
+        )}
       </>
     );
   }
@@ -1466,7 +1497,10 @@ function App() {
               key={key}
               aria-label={label}
               className={view === key ? "active" : ""}
-              onClick={() => setView(key)}
+              onClick={() => {
+                setView(key);
+                if (key === "consistency") enterFullscreen();
+              }}
             >
               <Icon {...iconProps} />
               <span>{label}</span>
@@ -1550,6 +1584,7 @@ function App() {
             onClick={() => {
               setView(key);
               window.scrollTo(0, 0);
+              if (key === "consistency") enterFullscreen();
             }}
           >
             <Icon size={21} />

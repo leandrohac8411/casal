@@ -1161,6 +1161,28 @@ h3 {
 .fullscreen .content {
   max-width: 1300px;
 }
+.calendar-fullscreen-exit {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 40;
+  width: 42px;
+  height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--panel);
+  border: 1px solid #ffffff14;
+  color: var(--muted);
+}
+.calendar-fullscreen-exit:hover {
+  color: #f4f3ef;
+  border-color: var(--accent);
+}
+.fullscreen .calendar-panel {
+  margin-top: 0;
+}
 .plans-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
