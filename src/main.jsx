@@ -624,12 +624,6 @@ function App() {
     clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(() => setToast(""), 3500);
   };
-  function enterFullscreen() {
-    setFull(true);
-  }
-  function exitFullscreenMode() {
-    setFull(false);
-  }
   function openPhotoPicker(p) {
     if (!firebaseReady) {
       notify("O upload de foto ainda está sendo configurado.");
@@ -1131,15 +1125,12 @@ function App() {
         <div className="dash-links">
           <button
             className="house-entry"
-            onClick={() => {
-              setView("consistency");
-              enterFullscreen();
-            }}
+            onClick={() => setView("consistency")}
           >
             <CalendarDays size={20} />
             <span>
               Ver calendário completo
-              <small>Seu mês inteiro, em tela cheia.</small>
+              <small>Seu mês inteiro, dia a dia.</small>
             </span>
             <ArrowRight size={19} />
           </button>
@@ -1168,15 +1159,6 @@ function App() {
       count = new Date(start.getFullYear(), start.getMonth() + 1, 0).getDate();
     return (
       <>
-        {full && (
-          <button
-            className="calendar-fullscreen-exit"
-            aria-label="Sair da tela cheia"
-            onClick={exitFullscreenMode}
-          >
-            <X size={22} />
-          </button>
-        )}
         <section className="panel calendar-panel routine-calendar">
           <div className="section-heading">
             <button
@@ -1598,10 +1580,7 @@ function App() {
               key={key}
               aria-label={label}
               className={view === key ? "active" : ""}
-              onClick={() => {
-                setView(key);
-                if (key === "consistency") enterFullscreen();
-              }}
+              onClick={() => setView(key)}
             >
               <Icon {...iconProps} />
               <span>{label}</span>
@@ -1686,7 +1665,6 @@ function App() {
             onClick={() => {
               setView(key);
               window.scrollTo(0, 0);
-              if (key === "consistency") enterFullscreen();
             }}
           >
             <Icon size={21} />
