@@ -1539,9 +1539,6 @@ function App() {
       </aside>
       <div className="workspace">
         <header className="topbar">
-          <span className="breadcrumb">
-            Nossa rotina <span>/</span> {nav.find((n) => n[0] === view)?.[2]}
-          </span>
           <button
             className="mobile-brand brand-button"
             onClick={() => setPerson(null)}
