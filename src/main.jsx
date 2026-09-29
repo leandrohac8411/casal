@@ -686,7 +686,7 @@ function App() {
   }
   function enter(p) {
     setPerson(p);
-    setView(p === "house" ? "house" : "consistency");
+    setView(p === "house" ? "house" : "dashboard");
     setSelected(today);
     setMonth(today.slice(0, 7));
     window.scrollTo(0, 0);
@@ -716,6 +716,7 @@ function App() {
   }
   const active = person === "house" ? "stephany" : person;
   const nav = [
+    ["dashboard", LayoutGrid, "Início"],
     ["consistency", CalendarDays, "Calendário"],
     ["today", Sun, "Meu dia"],
     ["diet", Utensils, "Alimentação"],
@@ -1017,6 +1018,141 @@ function App() {
               <Heart size={16} />
             </div>
           </aside>
+        </div>
+      </>
+    );
+  }
+  function Dashboard() {
+    const p = active,
+      d = dayFor(p),
+      s = status(d),
+      m = metrics(records, p, month, today),
+      rest = d.workouts.length === 0,
+      workoutDone = !rest && s.workouts === d.workouts.length,
+      waterDone = Boolean(s.water);
+    return (
+      <>
+        <div className="page-heading">
+          <div>
+            <div className="date-label">
+              {fmt(today, { weekday: "long", day: "numeric", month: "long" })}
+            </div>
+            <h1>
+              Bem-vindo de volta<span className="accent">, {profiles[p].short}.</span>
+            </h1>
+            <p>Um resumo rápido antes de seguir o dia.</p>
+          </div>
+          <span className="outline-icon">
+            <Sparkles size={27} strokeWidth={1.3} />
+          </span>
+        </div>
+        <div className="daily-summary">
+          <div className="progress-ring" style={{ "--progress": `${s.percent}%` }}>
+            <span>
+              {s.percent}
+              <small>%</small>
+            </span>
+          </div>
+          <div>
+            <span className="eyebrow">SEU RITMO DE HOJE</span>
+            <h3>
+              {s.complete
+                ? "Seu dia está completo."
+                : s.done
+                  ? "Cada cuidado conta."
+                  : "O primeiro cuidado começa aqui."}
+            </h3>
+            <p>
+              {s.done} de {s.total} cuidados concluídos.
+            </p>
+          </div>
+        </div>
+        <div className="metrics">
+          {[
+            [m.complete, "dias completos"],
+            [`${m.percent}%`, "dos dias registrados"],
+            [m.current, "sequência atual"],
+            [m.best, "melhor sequência"],
+          ].map(([n, label]) => (
+            <div key={label}>
+              <strong>{n}</strong>
+              <span>{label}</span>
+            </div>
+          ))}
+        </div>
+        <section className="panel">
+          <div className="section-heading">
+            <h2>Seu dia, em um relance</h2>
+          </div>
+          <div className="dash-quick-grid">
+            <button
+              className="dash-quick-card"
+              onClick={() => {
+                setView("today");
+                window.scrollTo(0, 0);
+              }}
+            >
+              <Utensils size={20} />
+              <strong>
+                {s.meals}/{d.meals.length}
+              </strong>
+              <span>Alimentação</span>
+            </button>
+            <button
+              className="dash-quick-card"
+              onClick={() => {
+                setView("today");
+                window.scrollTo(0, 0);
+              }}
+            >
+              <Droplets size={20} />
+              <strong>{waterDone ? "Meta batida" : `${d.water} / ${d.waterGoal} ml`}</strong>
+              <span>Água</span>
+            </button>
+            <button
+              className="dash-quick-card"
+              onClick={() => {
+                setView("today");
+                window.scrollTo(0, 0);
+              }}
+            >
+              {rest ? <Leaf size={20} /> : <Dumbbell size={20} />}
+              <strong>
+                {rest ? "Descanso" : workoutDone ? "Concluído" : `${s.workouts}/${d.workouts.length}`}
+              </strong>
+              <span>Treino</span>
+            </button>
+          </div>
+        </section>
+        <div className="dash-links">
+          <button
+            className="house-entry"
+            onClick={() => {
+              setView("consistency");
+              enterFullscreen();
+            }}
+          >
+            <CalendarDays size={20} />
+            <span>
+              Ver calendário completo
+              <small>Seu mês inteiro, em tela cheia.</small>
+            </span>
+            <ArrowRight size={19} />
+          </button>
+          <button
+            className="house-entry"
+            onClick={() => {
+              setView("house");
+              window.scrollTo(0, 0);
+            }}
+          >
+            <House size={20} />
+            <span>
+              Abrir o quadro da casa
+              <small>Os dois lado a lado.</small>
+            </span>
+            <ArrowRight size={19} />
+          </button>
         </div>
       </>
     );
@@ -1556,7 +1692,9 @@ function App() {
           </div>
         </header>
         <main className="content">
-          {view === "today" ? (
+          {view === "dashboard" ? (
+            <Dashboard />
+          ) : view === "today" ? (
             <Daily p={active} />
           ) : view === "diet" ? (
             <Diet />
