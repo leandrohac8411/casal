@@ -612,14 +612,11 @@ function App() {
     const sync = (e) => {
       if (e.key === KEY) setRecords(loadRecords());
     };
-    const fs = () => setFull(Boolean(document.fullscreenElement));
     window.addEventListener("storage", sync);
-    document.addEventListener("fullscreenchange", fs);
     return () => {
       clearInterval(timer);
       clearTimeout(toastTimer.current);
       window.removeEventListener("storage", sync);
-      document.removeEventListener("fullscreenchange", fs);
     };
   }, []);
   const notify = (text) => {
@@ -627,19 +624,11 @@ function App() {
     clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(() => setToast(""), 3500);
   };
-  async function enterFullscreen() {
-    try {
-      if (!document.fullscreenElement) await document.documentElement.requestFullscreen();
-    } catch {
-      notify("A tela cheia não está disponível neste navegador.");
-    }
+  function enterFullscreen() {
+    setFull(true);
   }
-  async function exitFullscreenMode() {
-    try {
-      if (document.fullscreenElement) await document.exitFullscreen();
-    } catch {
-      /* ignore */
-    }
+  function exitFullscreenMode() {
+    setFull(false);
   }
   function openPhotoPicker(p) {
     if (!firebaseReady) {
@@ -1300,15 +1289,7 @@ function App() {
           </div>
           <button
             className="secondary-button"
-            onClick={async () => {
-              try {
-                document.fullscreenElement
-                  ? await document.exitFullscreen()
-                  : await document.documentElement.requestFullscreen();
-              } catch {
-                notify("A tela cheia não está disponível neste navegador.");
-              }
-            }}
+            onClick={() => setFull((v) => !v)}
           >
             {full ? <Minimize size={18} /> : <Maximize size={18} />}
             <span>{full ? "Sair da tela cheia" : "Tela cheia"}</span>
