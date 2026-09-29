@@ -715,6 +715,21 @@ function App() {
     notify("Planejamento do dia atualizado.");
   }
   const active = person === "house" ? "stephany" : person;
+  const myKey = personKeyForName(userDoc?.name);
+  const otherKey = Object.keys(profiles).find((k) => k !== myKey);
+  const otherUid = couple?.memberUids?.find((id) => id !== user?.uid);
+  const otherMember = otherUid ? couple?.members?.[otherUid] : null;
+  function displayName(p) {
+    if (p === myKey) return userDoc?.name || "";
+    if (p === otherKey) return otherMember?.name || "seu par";
+    return profiles[p]?.name || "";
+  }
+  function displayShort(p) {
+    return displayName(p).split(" ")[0] || displayName(p);
+  }
+  function displayInitial(p) {
+    return (displayName(p)[0] || "?").toUpperCase();
+  }
   const nav = [
     ["dashboard", LayoutGrid, "Início"],
     ["consistency", CalendarDays, "Calendário"],
@@ -808,7 +823,7 @@ function App() {
               </button>
               <button
                 className="check-button"
-                aria-label={`${d.done[m.id] ? "Desmarcar" : "Concluir"} ${m.name} de ${profiles[p].name}`}
+                aria-label={`${d.done[m.id] ? "Desmarcar" : "Concluir"} ${m.name} de ${displayName(p)}`}
                 aria-pressed={!!d.done[m.id]}
                 disabled={d.date !== today}
                 onClick={() => toggleMeal(p, d, m.id)}
@@ -912,7 +927,7 @@ function App() {
                 className={`check-button ${w.done ? "checked" : ""}`}
                 aria-pressed={w.done}
                 disabled={d.date !== today}
-                aria-label={`${w.done ? "Desmarcar" : "Concluir"} ${w.name} de ${profiles[p].name}`}
+                aria-label={`${w.done ? "Desmarcar" : "Concluir"} ${w.name} de ${displayName(p)}`}
                 onClick={() =>
                   update(
                     p,
@@ -959,7 +974,7 @@ function App() {
               {selected === today ? (
                 <>
                   Um dia de cada vez
-                  <span className="accent">, {profiles[p].short}.</span>
+                  <span className="accent">, {displayShort(p)}.</span>
                 </>
               ) : (
                 "Seu dia, no seu ritmo."
@@ -1038,7 +1053,7 @@ function App() {
               {fmt(today, { weekday: "long", day: "numeric", month: "long" })}
             </div>
             <h1>
-              Bem-vindo de volta<span className="accent">, {profiles[p].short}.</span>
+              Bem-vindo de volta<span className="accent">, {displayShort(p)}.</span>
             </h1>
             <p>Um resumo rápido antes de seguir o dia.</p>
           </div>
@@ -1329,12 +1344,12 @@ function App() {
               <div className={`person-board theme-${profile.color}`} key={p}>
                 <div className="board-person">
                   {photos[p] ? (
-                    <img className="avatar avatar-photo" src={photos[p]} alt={profile.name} />
+                    <img className="avatar avatar-photo" src={photos[p]} alt={displayName(p)} />
                   ) : (
-                    <span className="avatar">{profile.initial}</span>
+                    <span className="avatar">{displayInitial(p)}</span>
                   )}
                   <div>
-                    <h2>{profile.name}</h2>
+                    <h2>{displayName(p)}</h2>
                     <span>
                       {s.done} de {s.total} cuidados
                     </span>
@@ -1409,7 +1424,7 @@ function App() {
           ))}
         </div>
         <p className="calendar-explainer">
-          Opções transcritas do planejamento enviado para Stephany. Quantidades
+          Opções transcritas de um planejamento de referência. Quantidades
           e valores nutricionais ainda não foram validados. Alterar um plano
           aqui muda somente a data selecionada.
         </p>
@@ -1454,11 +1469,7 @@ function App() {
           />
           <div className="profile-choices">
             {(() => {
-              const myKey = personKeyForName(userDoc?.name);
-              const otherKey = Object.keys(profiles).find((k) => k !== myKey);
-              const myName = userDoc?.name || profiles[myKey].name;
-              const otherUid = couple?.memberUids?.find((id) => id !== user.uid);
-              const otherMember = otherUid ? couple?.members?.[otherUid] : null;
+              const myName = displayName(myKey);
               const otherReady = Boolean(otherMember?.onboardingComplete);
               const myProfile = profiles[myKey];
               const otherProfile = profiles[otherKey];
@@ -1485,7 +1496,7 @@ function App() {
                     {photos[p] ? (
                       <img className="profile-photo" src={photos[p]} alt={name} />
                     ) : (
-                      <span className="avatar profile-photo-fallback">{profiles[p].initial}</span>
+                      <span className="avatar profile-photo-fallback">{displayInitial(p)}</span>
                     )}
                     <span className="profile-photo-edit">
                       <Camera size={14} />
@@ -1635,11 +1646,11 @@ function App() {
               {person === "house" ? (
                 <House size={18} />
               ) : (
-                profiles[active].initial
+                displayInitial(active)
               )}
             </span>
             <span>
-              {person === "house" ? "Nossa casa" : profiles[active].name}
+              {person === "house" ? "Nossa casa" : displayName(active)}
               <small>Trocar perfil</small>
             </span>
             <LogOut size={17} />
@@ -1660,7 +1671,7 @@ function App() {
               aria-label="Trocar perfil"
               onClick={() => setPerson(null)}
             >
-              {profiles[active].initial}
+              {displayInitial(active)}
             </button>
           </div>
         </header>
@@ -1679,7 +1690,9 @@ function App() {
           <footer className="content-footer">
             <Brand compact />
             <span>Um dia de cada vez. E está tudo bem.</span>
-            <span>Stephany & Leandro</span>
+            <span>
+              {otherMember ? `${displayName(myKey)} & ${otherMember.name}` : displayName(myKey)}
+            </span>
           </footer>
         </main>
       </div>
@@ -1716,7 +1729,7 @@ function App() {
           {modal.type === "meal" ? (
             <>
               <span className="eyebrow">
-                {modal.meal.time} · {profiles[modal.p].name}
+                {modal.meal.time} · {displayName(modal.p)}
               </span>
               <h2>{modal.meal.name}</h2>
               <ul className="food-list">
@@ -1802,7 +1815,7 @@ function App() {
               <span className="eyebrow">
                 {fmt(modal.key, { day: "numeric", month: "long" })}
               </span>
-              <h2>{profiles[modal.p].name}, seu dia.</h2>
+              <h2>{displayName(modal.p)}, seu dia.</h2>
               <div className="day-modal-status">
                 {status(dayFor(modal.p, modal.key)).done} de{" "}
                 {status(dayFor(modal.p, modal.key)).total} cuidados concluídos
