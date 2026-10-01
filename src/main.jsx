@@ -61,6 +61,8 @@ import {
   createCoupleInvite,
   saveSharedMeal,
   toggleSharedMealDone,
+  setLivesTogether,
+  syncDailyComplete,
 } from "./cloud";
 import "./styles.css";
 const iconProps = { size: 20, strokeWidth: 1.65 };
@@ -728,6 +730,12 @@ function App() {
   function displayInitial(p) {
     return (displayName(p)[0] || "?").toUpperCase();
   }
+  useEffect(() => {
+    if (!userDoc?.coupleId || !myKey || !user) return;
+    const complete = status(dayFor(myKey, today)).complete;
+    syncDailyComplete(userDoc.coupleId, user.uid, today, complete).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [records, myKey, today, userDoc?.coupleId]);
   const nav = [
     ["dashboard", LayoutGrid, "Início"],
     ["consistency", CalendarDays, "Calendário"],
@@ -1035,6 +1043,66 @@ function App() {
       </>
     );
   }
+  function TogetherStreak() {
+    const dailyComplete = couple?.dailyComplete || {};
+    const jointDays = Object.values(dailyComplete).filter(
+      (byUid) => byUid?.[user.uid] && byUid?.[otherUid],
+    ).length;
+    return (
+      <section className="panel together-streak">
+        <div className="section-heading">
+          <h2>Juntos nessa</h2>
+        </div>
+        <div className="together-streak-body">
+          <Heart size={22} />
+          <div>
+            <strong>{jointDays}</strong>
+            <span>
+              {jointDays === 1 ? "dia" : "dias"} em que os dois bateram a própria meta
+            </span>
+          </div>
+        </div>
+        <p className="shared-meal-note">
+          Cada um faz do seu jeito, na sua casa — mas contando pro mesmo time.
+        </p>
+      </section>
+    );
+  }
+  function TogetherSetup() {
+    const [saving, setSaving] = useState(false);
+    async function choose(value) {
+      setSaving(true);
+      try {
+        await setLivesTogether(userDoc.coupleId, value);
+      } finally {
+        setSaving(false);
+      }
+    }
+    return (
+      <section className="panel together-setup">
+        <div className="section-heading">
+          <h2>Vocês moram e cozinham juntos?</h2>
+        </div>
+        <p className="shared-meal-note">
+          Isso muda como mostramos a rotina dos dois — pode trocar depois, a qualquer hora.
+        </p>
+        <div className="shared-meal-actions">
+          <button className="primary-button" style={{ width: "auto" }} disabled={saving} onClick={() => choose(true)}>
+            Sim, cozinhamos junto
+          </button>
+          <button className="secondary-button" disabled={saving} onClick={() => choose(false)}>
+            Não, cada um na sua casa
+          </button>
+        </div>
+      </section>
+    );
+  }
+  function CoupleTogetherSection() {
+    if (!couple || !otherMember) return null;
+    if (couple.livesTogether === true) return <SharedMeal />;
+    if (couple.livesTogether === false) return <TogetherStreak />;
+    return <TogetherSetup />;
+  }
   function SharedMeal() {
     const slot = "almoco";
     const shared = couple?.sharedDays?.[today]?.[slot];
@@ -1193,7 +1261,7 @@ function App() {
             </button>
           </div>
         </section>
-        <SharedMeal />
+        <CoupleTogetherSection />
         <div className="dash-links">
           <button
             className="house-entry"

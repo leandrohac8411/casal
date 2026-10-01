@@ -100,6 +100,14 @@ export function subscribeCouple(coupleId, callback) {
   });
 }
 
+export async function setLivesTogether(coupleId, value) {
+  await updateDoc(doc(db, "couples", coupleId), { livesTogether: value });
+}
+
+export async function syncDailyComplete(coupleId, uid, date, complete) {
+  await updateDoc(doc(db, "couples", coupleId), { [`dailyComplete.${date}.${uid}`]: complete });
+}
+
 export async function saveSharedMeal(coupleId, date, slot, items) {
   await updateDoc(doc(db, "couples", coupleId), {
     [`sharedDays.${date}.${slot}`]: { items, done: {} },

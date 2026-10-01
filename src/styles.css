@@ -1075,6 +1075,35 @@ h3 {
 .shared-meal-partner.done {
   color: var(--accent);
 }
+.together-streak,
+.together-setup {
+  margin-top: 22px;
+  padding: 24px;
+}
+.together-streak .section-heading,
+.together-setup .section-heading {
+  padding: 0 0 16px;
+}
+.together-streak-body {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: var(--accent);
+}
+.together-streak-body strong {
+  font-family: Manrope, sans-serif;
+  font-size: 32px;
+  font-weight: 600;
+  display: block;
+  color: #f4f3ef;
+}
+.together-streak-body span {
+  font-size: 12px;
+  color: var(--muted);
+}
+.together-setup .shared-meal-actions {
+  justify-content: flex-start;
+}
 .calendar-panel {
   padding: 0 12px 16px;
 }
