@@ -389,6 +389,18 @@ h3 {
   color: var(--accent);
   text-transform: uppercase;
 }
+.welcome-signout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin: 26px auto 0;
+  font-size: 11px;
+  color: var(--muted);
+}
+.welcome-signout:hover {
+  color: #f4f3ef;
+}
 .app {
   min-height: 100dvh;
 }

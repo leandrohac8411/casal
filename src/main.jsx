@@ -585,7 +585,7 @@ function App() {
   const toastTimer = useRef();
   const photoInputRef = useRef();
   const pendingPhotoPerson = useRef(null);
-  const { user, userDoc, loading: authLoading } = useAuth();
+  const { user, userDoc, loading: authLoading, signOutUser } = useAuth();
   async function handleGenerateInvite() {
     setGeneratingInvite(true);
     try {
@@ -1562,6 +1562,10 @@ function App() {
             <p>&ldquo;{verse.text}&rdquo;</p>
             <span>{verse.ref}</span>
           </div>
+          <button className="welcome-signout" onClick={() => signOutUser()}>
+            <LogOut size={14} />
+            Sair da conta
+          </button>
         </main>
       </div>
     );
