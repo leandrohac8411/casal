@@ -77,18 +77,41 @@ function buildSlotItems(slot, rand, restricted, eatsVeggies) {
   }
   return parts.length ? parts.join(" · ") : "Sem opções com as restrições informadas.";
 }
-export function generateMeals(prefs, seedKey) {
-  const rand = mulberry32(hashStr(seedKey));
-  const restricted = `${prefs.avoidFoods || ""},${prefs.allergies || ""}`
+export function parseRestricted(prefs) {
+  return `${prefs?.avoidFoods || ""},${prefs?.allergies || ""}`
     .split(",")
     .map((s) => s.trim().toLowerCase())
     .filter(Boolean);
+}
+export function generateMeals(prefs, seedKey) {
+  const rand = mulberry32(hashStr(seedKey));
+  const restricted = parseRestricted(prefs);
   const chosen = Array.isArray(prefs.mealTimes) && prefs.mealTimes.length ? prefs.mealTimes : slotOrder;
   const ordered = slotOrder.filter((id) => chosen.includes(id));
   return ordered.map((id) =>
     meal(id, slotTimes[id], slotLabels[id], buildSlotItems(id, rand, restricted, prefs.eatsVeggies)),
   );
 }
+export function generateSharedMeal(slot, seedKey, restrictedA, restrictedB) {
+  const rand = mulberry32(hashStr(seedKey));
+  const restricted = [...restrictedA, ...restrictedB];
+  const tags = slotCombos[slot] || ["carb", "protein"];
+  const items = [];
+  for (const tag of tags) {
+    const food = pickFood(rand, tag, restricted);
+    if (food) items.push({ tag, name: food.name, baseGrams: portionByTag[tag] });
+  }
+  return items;
+}
+export function portionRatio(weight, partnerWeight) {
+  const w1 = Number(weight);
+  const w2 = Number(partnerWeight);
+  if (!w1 || !w2) return 1;
+  const avg = (w1 + w2) / 2;
+  return Math.max(0.7, Math.min(1.3, w1 / avg));
+}
+export const sharedSlotLabel = (slot) => slotLabels[slot] || slot;
+export const sharedSlotTime = (slot) => slotTimes[slot] || "";
 export const plans = [
   {
     id: "frango",

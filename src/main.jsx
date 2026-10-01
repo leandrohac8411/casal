@@ -42,6 +42,10 @@ import {
   createDay,
   status,
   metrics,
+  generateSharedMeal,
+  portionRatio,
+  parseRestricted,
+  sharedSlotLabel,
 } from "./domain";
 import { loadRecords, saveRecords, KEY } from "./store";
 import { verseOfDay } from "./verses";
@@ -50,7 +54,14 @@ import { firebaseReady } from "./firebase";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "./firebase";
 import Onboarding from "./Onboarding";
-import { uploadProfilePhoto, subscribeProfilePhotos, subscribeCouple, createCoupleInvite } from "./cloud";
+import {
+  uploadProfilePhoto,
+  subscribeProfilePhotos,
+  subscribeCouple,
+  createCoupleInvite,
+  saveSharedMeal,
+  toggleSharedMealDone,
+} from "./cloud";
 import "./styles.css";
 const iconProps = { size: 20, strokeWidth: 1.65 };
 const fmt = (d, options) => parseDate(d).toLocaleDateString("pt-BR", options);
@@ -1024,6 +1035,62 @@ function App() {
       </>
     );
   }
+  function SharedMeal() {
+    const slot = "almoco";
+    const shared = couple?.sharedDays?.[today]?.[slot];
+    const generatingRef = useRef(false);
+    useEffect(() => {
+      if (!couple || !otherMember || !userDoc?.coupleId || shared || generatingRef.current) return;
+      generatingRef.current = true;
+      const restrictedA = parseRestricted(userDoc);
+      const restrictedB = parseRestricted(otherMember);
+      const items = generateSharedMeal(slot, `${userDoc.coupleId}:${today}`, restrictedA, restrictedB);
+      saveSharedMeal(userDoc.coupleId, today, slot, items).finally(() => {
+        generatingRef.current = false;
+      });
+    }, [couple, otherMember, shared]);
+    if (!couple || !otherMember) return null;
+    const myRatio = portionRatio(userDoc?.weight, otherMember.weight);
+    const myDone = Boolean(shared?.done?.[user.uid]);
+    const otherDone = Boolean(shared?.done?.[otherUid]);
+    return (
+      <section className="panel shared-meal">
+        <div className="section-heading">
+          <h2>{sharedSlotLabel(slot)} do casal</h2>
+        </div>
+        {!shared ? (
+          <p className="shared-meal-loading">Montando a refeição de vocês dois...</p>
+        ) : (
+          <>
+            <ul className="shared-meal-items">
+              {shared.items.map((it) => (
+                <li key={it.tag}>
+                  {Math.round(it.baseGrams * myRatio)} g {it.name.toLowerCase()}
+                </li>
+              ))}
+            </ul>
+            <p className="shared-meal-note">
+              A comida é a mesma pros dois — a quantidade é ajustada pra cada um.
+            </p>
+            <div className="shared-meal-actions">
+              <button
+                className={myDone ? "secondary-button" : "primary-button"}
+                style={{ width: "auto" }}
+                onClick={() =>
+                  toggleSharedMealDone(userDoc.coupleId, today, slot, user.uid, !myDone)
+                }
+              >
+                {myDone ? "Você já comeu" : "Marcar como feito"}
+              </button>
+              <span className={`shared-meal-partner ${otherDone ? "done" : ""}`}>
+                {otherMember.name}: {otherDone ? "já comeu" : "ainda não"}
+              </span>
+            </div>
+          </>
+        )}
+      </section>
+    );
+  }
   function Dashboard() {
     const p = active,
       d = dayFor(p),
@@ -1126,6 +1193,7 @@ function App() {
             </button>
           </div>
         </section>
+        <SharedMeal />
         <div className="dash-links">
           <button
             className="house-entry"

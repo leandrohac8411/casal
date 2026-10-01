@@ -1,6 +1,14 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createDay, status, metrics, plans, generateMeals } from "../src/domain.js";
+import {
+  createDay,
+  status,
+  metrics,
+  plans,
+  generateMeals,
+  generateSharedMeal,
+  portionRatio,
+} from "../src/domain.js";
 test("um dia só fica completo com refeições, água e todos os treinos", () => {
   const d = createDay("stephany", "2026-09-22");
   d.meals.forEach((m) => (d.done[m.id] = true));
@@ -77,4 +85,27 @@ test("alimentos evitados não aparecem nas refeições geradas", () => {
   assert.equal(text.includes("frango"), false);
   assert.equal(text.includes("atum"), false);
   assert.equal(text.includes("presunto"), false);
+});
+test("a refeição compartilhada é a mesma pros dois, mesma seed", () => {
+  const a = generateSharedMeal("almoco", "casal1:2026-10-01", [], []);
+  const b = generateSharedMeal("almoco", "casal1:2026-10-01", [], []);
+  assert.deepEqual(a, b);
+  assert.ok(a.length > 0);
+});
+test("a refeição compartilhada respeita restrições dos dois", () => {
+  const items = generateSharedMeal("almoco", "casal1:2026-10-01", ["frango"], ["feijão"]);
+  const names = items.map((i) => i.name.toLowerCase());
+  assert.equal(names.some((n) => n.includes("frango")), false);
+  assert.equal(names.some((n) => n.includes("feijão")), false);
+});
+test("a porção é igual quando falta o peso de alguém", () => {
+  assert.equal(portionRatio("", "70"), 1);
+  assert.equal(portionRatio("80", ""), 1);
+});
+test("a porção é proporcional ao peso, dentro de um limite seguro", () => {
+  assert.equal(portionRatio("90", "60"), 1.2);
+  assert.equal(portionRatio("60", "90"), 0.8);
+  // pesos muito desiguais não geram porções absurdas (limite de 0.7–1.3)
+  assert.equal(portionRatio("200", "50"), 1.3);
+  assert.equal(portionRatio("50", "200"), 0.7);
 });

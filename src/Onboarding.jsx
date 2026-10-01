@@ -438,7 +438,7 @@ export default function Onboarding({ uid, name, onDone }) {
     setError("");
     try {
       await saveOnboarding(uid, data);
-      if (coupleId) await markCoupleMemberOnboarded(coupleId, uid);
+      if (coupleId) await markCoupleMemberOnboarded(coupleId, uid, data);
       onDone();
     } catch (err) {
       setError(err.message);

@@ -85,13 +85,30 @@ export async function joinCoupleByCode(uid, name, code) {
   return { coupleId: coupleDoc.id };
 }
 
-export async function markCoupleMemberOnboarded(coupleId, uid) {
-  await updateDoc(doc(db, "couples", coupleId), { [`members.${uid}.onboardingComplete`]: true });
+export async function markCoupleMemberOnboarded(coupleId, uid, prefs) {
+  await updateDoc(doc(db, "couples", coupleId), {
+    [`members.${uid}.onboardingComplete`]: true,
+    [`members.${uid}.weight`]: prefs?.weight || "",
+    [`members.${uid}.avoidFoods`]: prefs?.avoidFoods || "",
+    [`members.${uid}.allergies`]: prefs?.allergies || "",
+  });
 }
 
 export function subscribeCouple(coupleId, callback) {
   return onSnapshot(doc(db, "couples", coupleId), (snap) => {
     callback(snap.exists() ? snap.data() : null);
+  });
+}
+
+export async function saveSharedMeal(coupleId, date, slot, items) {
+  await updateDoc(doc(db, "couples", coupleId), {
+    [`sharedDays.${date}.${slot}`]: { items, done: {} },
+  });
+}
+
+export async function toggleSharedMealDone(coupleId, date, slot, uid, done) {
+  await updateDoc(doc(db, "couples", coupleId), {
+    [`sharedDays.${date}.${slot}.done.${uid}`]: done,
   });
 }
 
