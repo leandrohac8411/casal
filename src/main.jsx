@@ -597,9 +597,12 @@ function App() {
     }
   }
   useEffect(() => {
-    if (!firebaseReady) return;
+    if (!firebaseReady || !user) {
+      setPhotos({});
+      return;
+    }
     return subscribeProfilePhotos(setPhotos);
-  }, []);
+  }, [user]);
   useEffect(() => {
     if (!userDoc?.coupleId) {
       setCouple(null);
